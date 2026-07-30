@@ -1,0 +1,26 @@
+{
+  "name": "@arcsyn-shift/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@arcsyn-shift/config": "workspace:*",
+    "@arcsyn-shift/database": "workspace:*",
+    "@arcsyn-shift/observability": "workspace:*",
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/core": "^11.0.11",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@arcsyn-shift/typescript-config": "workspace:*",
+    "tsx": "^4.19.2"
+  }
+}

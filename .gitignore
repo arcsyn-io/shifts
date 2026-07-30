@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnp/
+.pnp.*
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+!.env.example.*
+*.pem
+*.key
+
+# Build and tooling output
+dist/
+build/
+out/
+coverage/
+.turbo/
+.cache/
+.vite/
+*.tsbuildinfo
+*.eslintcache
+
+# Test and quality reports
+playwright-report/
+test-results/
+reports/
+
+# Logs and local runtime files
+*.log
+*.pid
+*.pid.lock
+*.seed
+*.local
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+# IDE and operating system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local Docker/database artifacts
+docker-compose.override.yml
+*.sqlite
+*.sqlite3
+
+# Package archives
+*.tgz
+*.tar.gz

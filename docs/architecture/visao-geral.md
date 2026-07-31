@@ -1,5 +1,8 @@
 # Visão geral da arquitetura
 
+A baseline de runtime, frameworks, bibliotecas e infraestrutura está em
+[Stack tecnológica](stack-tecnologica.md).
+
 ## Estrutura do monorepo
 
 - `apps/api`: API NestJS com Fastify e adaptadores de apresentação HTTP e MCP.

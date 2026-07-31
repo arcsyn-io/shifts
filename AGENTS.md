@@ -44,3 +44,6 @@ limites de confiança.
 
 Delegue ao `qa_engineer` a criação de cenários para funcionalidades não triviais
 e a validação dos critérios de aceite após a implementação.
+
+Delegue ao `frontend_developer` tarefas aprovadas e restritas a `apps/web` após
+a definição dos contratos compartilhados.

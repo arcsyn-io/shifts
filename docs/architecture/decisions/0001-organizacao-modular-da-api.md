@@ -185,3 +185,11 @@ implantação.
 - O agregador MCP ficará em `src/infrastructure/mcp`.
 - Os testes permanecerão em `apps/api/test` até nova decisão.
 - Interfaces e implementações de persistência ficarão em `repository`.
+- Commands e Results independentes de protocolo ficarão em
+  `application/commands` e `application/results`.
+- DTOs e mappers de transporte ficarão sob o adaptador HTTP ou MCP que os
+  utiliza; mappers de persistência ficarão em `repository/mappers`.
+- Use cases, entidades e value objects ficarão sob `domain/use-cases`,
+  `domain/entities` e `domain/value-objects`.
+- O validador arquitetural impedirá que artefatos com responsabilidades
+  reconhecíveis sejam criados fora desses diretórios.

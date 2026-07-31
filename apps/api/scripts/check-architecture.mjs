@@ -14,6 +14,122 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts']);
 const MODULE_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const IMPORT_PATTERN =
   /(?:import|export)\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|require\s*\(\s*["']([^"']+)["']\s*\)/g;
+const SHARED_ARTIFACT_EXCEPTIONS = new Set([
+  'infrastructure/mcp/mcp.controller.ts',
+  'infrastructure/mcp/mcp-tool.ts',
+]);
+const ARTIFACT_RULES = [
+  {
+    name: 'DTO',
+    filePattern: /\.dto\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Dto'],
+    allowedDirectories: ['presentation/http/dto', 'presentation/mcp/dto'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.(?:request|response)\.dto\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'DTO deve usar *.request.dto.ts ou *.response.dto.ts',
+  },
+  {
+    name: 'Command',
+    filePattern: /\.command\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Command'],
+    allowedDirectories: ['application/commands'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Command deve usar <nome-em-kebab-case>.command.ts',
+  },
+  {
+    name: 'Result',
+    filePattern: /\.result\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Result'],
+    allowedDirectories: ['application/results'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Result deve usar <nome-em-kebab-case>.result.ts',
+  },
+  {
+    name: 'Mapper',
+    filePattern: /\.mapper\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Mapper'],
+    allowedDirectories: [
+      'presentation/http/mappers',
+      'presentation/mcp/mappers',
+      'repository/mappers',
+    ],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Mapper deve usar <nome-em-kebab-case>.mapper.ts',
+  },
+  {
+    name: 'Controller',
+    filePattern: /\.controller\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Controller'],
+    allowedDirectories: ['presentation/http'],
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Controller deve usar <nome-em-kebab-case>.controller.ts',
+  },
+  {
+    name: 'McpTool',
+    filePattern: /\.tool\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['McpTool'],
+    allowedDirectories: ['presentation/mcp'],
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'McpTool deve usar <nome-em-kebab-case>-mcp.tool.ts',
+  },
+  {
+    name: 'Service',
+    filePattern: /\.service\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Service'],
+    allowedDirectories: ['application'],
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Service deve usar <nome-em-kebab-case>.service.ts',
+  },
+  {
+    name: 'UseCase',
+    filePattern: /\.use-case\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['UseCase'],
+    allowedDirectories: ['domain/use-cases'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'UseCase deve usar <nome-em-kebab-case>.use-case.ts',
+  },
+  {
+    name: 'Entity',
+    filePattern: /\.entity\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Entity'],
+    allowedDirectories: ['domain/entities'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Entity deve usar <nome-em-kebab-case>.entity.ts',
+  },
+  {
+    name: 'ValueObject',
+    filePattern: /\.value-object\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['ValueObject'],
+    allowedDirectories: ['domain/value-objects'],
+    forbidSubdirectories: true,
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'ValueObject deve usar <nome-em-kebab-case>.value-object.ts',
+  },
+  {
+    name: 'Repository',
+    filePattern: /\.repository\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Repository'],
+    allowedDirectories: ['repository'],
+    requiredFilePattern:
+      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Repository deve usar <nome-em-kebab-case>.repository.ts',
+  },
+];
 
 const normalize = (value) => value.split(path.sep).join('/');
 
@@ -83,6 +199,70 @@ function extractImports(source) {
     imports.push(match[1] ?? match[2] ?? match[3]);
   }
   return imports;
+}
+
+function validateArtifactLocation(relativeFile, source, moduleName) {
+  const errors = [];
+  const modulePrefix = `modules/${moduleName}/`;
+  const moduleRelativePath = relativeFile.slice(modulePrefix.length);
+  const fileDirectory = path.posix.dirname(moduleRelativePath);
+  const fileName = path.posix.basename(moduleRelativePath);
+
+  for (const rule of ARTIFACT_RULES) {
+    const declarationPattern = new RegExp(
+      `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
+    );
+    const isInReservedDirectory = rule.allowedDirectories.includes(fileDirectory);
+    const isBelowReservedDirectory =
+      rule.forbidSubdirectories === true &&
+      rule.allowedDirectories.some((directory) => fileDirectory.startsWith(`${directory}/`));
+    const matchesArtifact =
+      rule.filePattern.test(fileName) ||
+      declarationPattern.test(source) ||
+      isInReservedDirectory ||
+      isBelowReservedDirectory;
+
+    if (!matchesArtifact) continue;
+
+    const isAllowed = isInReservedDirectory;
+    if (!isAllowed) {
+      errors.push(
+        `${relativeFile}: ${rule.name} deve ficar em ${rule.allowedDirectories.join(' ou ')}.`,
+      );
+    }
+    if (rule.requiredFilePattern && !rule.requiredFilePattern.test(fileName)) {
+      errors.push(`${relativeFile}: ${rule.requiredFileMessage}.`);
+    }
+  }
+
+  return errors;
+}
+
+function validateArtifactsOutsideModules(relativeFile, source) {
+  if (
+    relativeFile.startsWith('modules/') ||
+    relativeFile.startsWith('application/') ||
+    relativeFile.startsWith('presentation/') ||
+    SHARED_ARTIFACT_EXCEPTIONS.has(relativeFile)
+  ) {
+    return [];
+  }
+
+  const fileName = path.posix.basename(relativeFile);
+  const errors = [];
+
+  for (const rule of ARTIFACT_RULES) {
+    const declarationPattern = new RegExp(
+      `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
+    );
+    if (!rule.filePattern.test(fileName) && !declarationPattern.test(source)) continue;
+
+    errors.push(
+      `${relativeFile}: ${rule.name} modular deve ficar em src/modules/<modulo>/${rule.allowedDirectories.join(' ou ')}.`,
+    );
+  }
+
+  return errors;
 }
 
 function resolveImport(importer, specifier, sourceRoot) {
@@ -220,6 +400,12 @@ export async function checkArchitecture(options = {}) {
     }
   }
 
+  for (const file of await listSourceFiles(sourceRoot)) {
+    const relativeFile = normalize(path.relative(sourceRoot, file));
+    const source = await readFile(file, 'utf8');
+    errors.push(...validateArtifactsOutsideModules(relativeFile, source));
+  }
+
   for (const entry of moduleEntries) {
     const moduleName = entry.name;
     const moduleRoot = path.join(modulesRoot, moduleName);
@@ -276,6 +462,8 @@ export async function checkArchitecture(options = {}) {
       const relativeFile = normalize(path.relative(sourceRoot, file));
       const layer = layerFromPath(relativeFile, moduleName);
       const source = await readFile(file, 'utf8');
+
+      errors.push(...validateArtifactLocation(relativeFile, source, moduleName));
 
       for (const specifier of extractImports(source)) {
         errors.push(...validateImport({ file, specifier, sourceRoot, moduleName, layer }));

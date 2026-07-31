@@ -23,16 +23,31 @@ O exemplo cria:
 ```text
 apps/api/src/modules/work-shifts/
 ├── application/
-│   └── .gitkeep
+│   ├── commands/
+│   │   └── .gitkeep
+│   └── results/
+│       └── .gitkeep
 ├── domain/
-│   └── .gitkeep
+│   ├── entities/
+│   │   └── .gitkeep
+│   ├── use-cases/
+│   │   └── .gitkeep
+│   └── value-objects/
+│       └── .gitkeep
 ├── presentation/
 │   ├── http/
-│   │   └── .gitkeep
+│   │   ├── dto/
+│   │   │   └── .gitkeep
+│   │   └── mappers/
+│   │       └── .gitkeep
 │   └── mcp/
-│       └── .gitkeep
+│       ├── dto/
+│       │   └── .gitkeep
+│       └── mappers/
+│           └── .gitkeep
 ├── repository/
-│   └── .gitkeep
+│   └── mappers/
+│       └── .gitkeep
 └── work-shifts.module.ts
 ```
 
@@ -44,10 +59,18 @@ ser exportadas pelo módulo e registradas no agregador compartilhado em
 ## Responsabilidades
 
 - `application`: services e coordenação de domínio e persistência;
+- `application/commands`: intenções imutáveis e independentes de transporte;
+- `application/results`: resultados da aplicação independentes de protocolo;
 - `domain`: objetos de domínio e use cases independentes de framework;
+- `domain/entities`: entidades com identidade do domínio;
+- `domain/use-cases`: regras de negócio executáveis;
+- `domain/value-objects`: valores do domínio sem identidade própria;
 - `presentation/http`: controllers e mapeamento do transporte HTTP;
 - `presentation/mcp`: ferramentas e handlers MCP do módulo;
+- `presentation/<protocolo>/dto`: entradas e saídas do protocolo;
+- `presentation/<protocolo>/mappers`: conversão entre DTOs, Commands e Results;
 - `repository`: contratos e implementações de acesso a dados;
+- `repository/mappers`: conversão entre persistência e domínio;
 - `<modulo>.module.ts`: composição NestJS e exportações públicas do módulo.
 
 Infraestrutura utilizada por mais de um módulo permanece em
@@ -64,6 +87,36 @@ pnpm architecture:check
 O comando é executado também por `pnpm lint`, pelo hook de `pre-commit` e pela
 CI. Uma violação encerra o processo com código diferente de zero.
 
+### Guard rails de artefatos
+
+O validador reconhece artefatos tanto pelo sufixo do arquivo quanto pelo nome de
+classes, interfaces e tipos declarados. Um artefato reconhecido fora de seu
+diretório interrompe a validação. Artefatos modulares também não podem ser
+criados fora de `src/modules`; somente o controller agregador e o contrato
+técnico do MCP possuem exceções explícitas em `src/infrastructure/mcp`.
+
+| Artefato               | Diretório permitido         | Arquivo                                   |
+| ---------------------- | --------------------------- | ----------------------------------------- |
+| Command                | `application/commands`      | `*.command.ts`                            |
+| Result                 | `application/results`       | `*.result.ts`                             |
+| Service                | `application`               | `*.service.ts`                            |
+| Use case               | `domain/use-cases`          | `*.use-case.ts`                           |
+| Entity                 | `domain/entities`           | `*.entity.ts`                             |
+| Value object           | `domain/value-objects`      | `*.value-object.ts`                       |
+| DTO HTTP               | `presentation/http/dto`     | `*.request.dto.ts` ou `*.response.dto.ts` |
+| Mapper HTTP            | `presentation/http/mappers` | `*.mapper.ts`                             |
+| Controller HTTP        | `presentation/http`         | `*.controller.ts`                         |
+| DTO MCP                | `presentation/mcp/dto`      | `*.request.dto.ts` ou `*.response.dto.ts` |
+| Mapper MCP             | `presentation/mcp/mappers`  | `*.mapper.ts`                             |
+| Ferramenta MCP         | `presentation/mcp`          | `*-mcp.tool.ts`                           |
+| Mapper de persistência | `repository/mappers`        | `*.mapper.ts`                             |
+| Repository             | `repository`                | `*.repository.ts`                         |
+
+Os diretórios especializados existem no módulo gerado, mas seus artefatos só
+devem ser criados quando houver responsabilidade concreta. Remova o `.gitkeep`
+ao adicionar o primeiro arquivo. DTOs são específicos do protocolo; Commands e
+Results são reutilizados por HTTP e MCP.
+
 O validador verifica:
 
 - nome de módulo em `kebab-case`;
@@ -77,6 +130,9 @@ O validador verifica:
   `repository`;
 - exceção controlada para o contrato MCP compartilhado;
 - bloqueio de imports por caminhos internos de outro módulo.
+- localização e nome em `kebab-case` dos artefatos reservados;
+- ausência de subdiretórios nas pastas-folha reservadas;
+- ausência de artefatos modulares fora de `src/modules`.
 
 ## Direção das dependências
 

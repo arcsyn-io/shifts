@@ -1,4 +1,4 @@
-import { HealthStatus } from './health-status.js';
+import { HealthStatus } from '../health-status.js';
 
 export class CheckHealthUseCase {
   execute(): HealthStatus {

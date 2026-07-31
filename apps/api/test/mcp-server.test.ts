@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { McpServer } from '../src/infrastructure/mcp/mcp-server.js';
 import { HealthService } from '../src/modules/health/application/health.service.js';
-import { CheckHealthUseCase } from '../src/modules/health/domain/check-health.use-case.js';
+import { CheckHealthUseCase } from '../src/modules/health/domain/use-cases/check-health.use-case.js';
 import { HealthMcpTool } from '../src/modules/health/presentation/mcp/health-mcp.tool.js';
 
 const createServer = () => {

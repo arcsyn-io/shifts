@@ -55,6 +55,26 @@ Use o gerador e o validador descritos em
 - Inclua estados de carregamento, vazio e erro.
 - Considere acessibilidade, foco e navegação por teclado.
 - Preserve os padrões visuais e de interação existentes.
+- Organize `apps/web/src` em `app`, `pages`, `features` e `shared`, criando
+  diretórios somente quando houver uma responsabilidade concreta.
+- Mantenha `main.tsx` restrito à montagem da aplicação e `app` à composição
+  global, providers, roteamento e layouts.
+- Páginas podem compor `features` e recursos de `shared`, mas não devem conter
+  acesso HTTP nem regras específicas de uma capacidade.
+- Mantenha queries, mutations, formulários, validações e componentes específicos
+  dentro da `feature` proprietária.
+- `shared` deve conter somente infraestrutura e recursos genéricos, sem
+  conhecimento das capacidades de negócio.
+- Respeite a direção `app` → `pages` → `features` → `shared`. Uma camada
+  inferior não pode importar uma camada superior.
+- Não importe caminhos internos de outra `feature`; colaboração exige uma API
+  pública explícita no `index.ts` da `feature` consumida.
+- Mantenha estado remoto no TanStack Query e estado estritamente local próximo
+  do componente que o utiliza.
+- Valide respostas externas em runtime com os schemas públicos de
+  `packages/contracts`; tipos TypeScript não substituem essa validação.
+- Execute o verificador arquitetural do web ao criar ou mover camadas e
+  `features`.
 
 ## Banco de dados
 

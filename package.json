@@ -17,7 +17,7 @@
     "db:studio": "pnpm --filter @arcsyn-shift/database db:studio",
     "db:reset": "pnpm --filter @arcsyn-shift/database db:reset",
     "module:create": "pnpm --filter @arcsyn-shift/api module:create",
-    "architecture:check": "pnpm --filter @arcsyn-shift/api architecture:check",
+    "architecture:check": "pnpm --filter @arcsyn-shift/api architecture:check && pnpm --filter @arcsyn-shift/web architecture:check",
     "prepare": "husky"
   },
   "devDependencies": {

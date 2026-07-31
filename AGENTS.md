@@ -50,3 +50,6 @@ a definição dos contratos compartilhados.
 
 Delegue ao `backend_developer` tarefas aprovadas de API, worker e persistência,
 com propriedade explícita para qualquer pacote compartilhado afetado.
+
+Delegue ao `devops_engineer` tarefas aprovadas de CI/CD, contêineres,
+infraestrutura, implantação e confiabilidade operacional.

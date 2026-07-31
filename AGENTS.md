@@ -37,3 +37,7 @@ necessária.
 Antes de implementar uma funcionalidade não trivial, delegue o levantamento ao
 agente `requirements_architect` definido em
 `.codex/agents/requirements-architect.toml` e siga o fluxo de especificações.
+
+Delegue ao `security_reviewer` mudanças que envolvam autenticação, autorização,
+dados sensíveis, entradas externas, integrações, dependências, infraestrutura ou
+limites de confiança.

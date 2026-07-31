@@ -47,3 +47,6 @@ e a validação dos critérios de aceite após a implementação.
 
 Delegue ao `frontend_developer` tarefas aprovadas e restritas a `apps/web` após
 a definição dos contratos compartilhados.
+
+Delegue ao `backend_developer` tarefas aprovadas de API, worker e persistência,
+com propriedade explícita para qualquer pacote compartilhado afetado.

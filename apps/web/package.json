@@ -6,12 +6,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src",
+    "lint": "eslint src test scripts && pnpm architecture:check",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "architecture:check": "node scripts/check-architecture.mjs"
   },
   "dependencies": {
     "@arcsyn-io/react": "^0.1.0",
+    "@arcsyn-shift/contracts": "workspace:*",
     "@tanstack/react-query": "^5.62.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

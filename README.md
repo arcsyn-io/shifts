@@ -60,6 +60,9 @@ A única tool inicial é `health_check`. O adaptador pode ser desabilitado com
 `pnpm typecheck`, `pnpm infra:up`, `pnpm infra:down`, `pnpm infra:logs`,
 `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:studio` e `pnpm db:reset`.
 
+Para criar e validar módulos da API, use `pnpm module:create <nome>` e
+`pnpm architecture:check`.
+
 ## Troubleshooting
 
 - Se a porta estiver ocupada, encerre o processo que usa 3000, 5173, 5432, 9000

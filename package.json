@@ -6,7 +6,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
-    "lint": "turbo lint",
+    "lint": "pnpm architecture:check && turbo lint",
     "format": "prettier --write .",
     "typecheck": "turbo typecheck",
     "infra:up": "docker compose up -d",
@@ -16,6 +16,8 @@
     "db:migrate": "pnpm --filter @arcsyn-shift/database db:migrate",
     "db:studio": "pnpm --filter @arcsyn-shift/database db:studio",
     "db:reset": "pnpm --filter @arcsyn-shift/database db:reset",
+    "module:create": "pnpm --filter @arcsyn-shift/api module:create",
+    "architecture:check": "pnpm --filter @arcsyn-shift/api architecture:check",
     "prepare": "husky"
   },
   "devDependencies": {

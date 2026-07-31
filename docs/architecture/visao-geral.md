@@ -17,6 +17,14 @@ A baseline de runtime, frameworks, bibliotecas e infraestrutura está em
 
 ## Regras arquiteturais
 
+- Organize capacidades da API em `apps/api/src/modules/<modulo>`.
+- Cada módulo da API contém `application`, `presentation`, `domain` e
+  `repository`, além de seu arquivo de composição NestJS.
+- Mantenha infraestrutura compartilhada fora dos módulos, em
+  `apps/api/src/infrastructure`.
+- Mantenha um único agregador MCP em `infrastructure/mcp`; módulos fornecem suas
+  ferramentas MCP por meio de exportações explícitas.
+
 - Reutilize os pacotes compartilhados existentes antes de duplicar contratos,
   configuração, acesso a dados ou observabilidade nas aplicações.
 - Mantenha regras de negócio fora dos adaptadores HTTP e MCP. Adaptadores podem
@@ -34,3 +42,6 @@ A baseline de runtime, frameworks, bibliotecas e infraestrutura está em
 
 As decisões que alterarem estas regras devem seguir o processo de ADR descrito
 em [Fluxo de especificações e ADRs](../specifications/fluxo-e-adrs.md).
+
+A organização modular da API foi estabelecida pela
+[ADR-0001](decisions/0001-organizacao-modular-da-api.md).

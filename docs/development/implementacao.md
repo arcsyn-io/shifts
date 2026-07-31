@@ -13,8 +13,23 @@
 
 ## Backend e worker
 
-- Preserve a separação entre apresentação, aplicação e infraestrutura existente
-  na API.
+Use o gerador e o validador descritos em
+[Criação e validação de módulos da API](modulos-api.md).
+
+- Organize capacidades da API em `src/modules/<modulo>`.
+- Cada módulo contém `application`, `presentation`, `domain` e `repository`,
+  além de `<modulo>.module.ts`.
+- `application` contém services e coordena domínio e persistência.
+- `presentation` contém controllers HTTP e ferramentas ou handlers MCP.
+- A apresentação MCP pode implementar o contrato técnico compartilhado pelo
+  agregador em `infrastructure/mcp`, sem importar implementações do transporte.
+- `domain` contém objetos de domínio e use cases sem dependência de NestJS,
+  transporte ou persistência.
+- `repository` contém contratos e implementações de acesso a dados do módulo.
+- Infraestrutura usada por vários módulos permanece em `src/infrastructure`.
+- A direção principal é `presentation` → `application` → `domain`/`repository`.
+- Módulos não importam caminhos internos de outros módulos; colaboração exige
+  uma exportação pública explícita.
 - Mantenha regras de negócio fora de controllers e adaptadores de protocolo.
 - Use `packages/contracts` para contratos compartilhados, `packages/database`
   para persistência, `packages/config` para configuração e

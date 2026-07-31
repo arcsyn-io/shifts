@@ -4,12 +4,17 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const MODULE_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
-const REQUIRED_DIRECTORIES = [
-  'application',
-  'domain',
-  'presentation/http',
-  'presentation/mcp',
-  'repository',
+const GENERATED_LEAF_DIRECTORIES = [
+  'application/commands',
+  'application/results',
+  'domain/entities',
+  'domain/use-cases',
+  'domain/value-objects',
+  'presentation/http/dto',
+  'presentation/http/mappers',
+  'presentation/mcp/dto',
+  'presentation/mcp/mappers',
+  'repository/mappers',
 ];
 
 const toPascalCase = (name) =>
@@ -40,7 +45,7 @@ export async function createModule(name, options = {}) {
 
   try {
     await Promise.all(
-      REQUIRED_DIRECTORIES.map(async (directory) => {
+      GENERATED_LEAF_DIRECTORIES.map(async (directory) => {
         const target = path.join(moduleRoot, directory);
         await mkdir(target, { recursive: true });
         await writeFile(path.join(target, '.gitkeep'), '');

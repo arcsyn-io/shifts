@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -33,9 +34,16 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@arcsyn-io'
 
       - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Reconstruir dependências nativas permitidas
+        run: pnpm rebuild @nestjs/core esbuild sharp
 
       - name: Verificar arquitetura
         run: pnpm architecture:check

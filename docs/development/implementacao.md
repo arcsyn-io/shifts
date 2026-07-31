@@ -20,17 +20,30 @@ Use o gerador e o validador descritos em
 - Cada módulo contém `application`, `presentation`, `domain` e `repository`,
   além de `<modulo>.module.ts`.
 - `application` contém services e coordena domínio e persistência.
+- Commands independentes de transporte ficam em `application/commands` e os
+  resultados da aplicação ficam em `application/results`.
 - `presentation` contém controllers HTTP e ferramentas ou handlers MCP.
+- DTOs e mappers pertencem ao protocolo que representam, em
+  `presentation/http/dto`, `presentation/http/mappers`, `presentation/mcp/dto`
+  ou `presentation/mcp/mappers`.
 - A apresentação MCP pode implementar o contrato técnico compartilhado pelo
   agregador em `infrastructure/mcp`, sem importar implementações do transporte.
 - `domain` contém objetos de domínio e use cases sem dependência de NestJS,
   transporte ou persistência.
+- Use cases, entidades e value objects ficam, respectivamente, em
+  `domain/use-cases`, `domain/entities` e `domain/value-objects`.
 - `repository` contém contratos e implementações de acesso a dados do módulo.
+- Mappers entre persistência e domínio ficam em `repository/mappers`.
 - Infraestrutura usada por vários módulos permanece em `src/infrastructure`.
 - A direção principal é `presentation` → `application` → `domain`/`repository`.
 - Módulos não importam caminhos internos de outros módulos; colaboração exige
   uma exportação pública explícita.
 - Mantenha regras de negócio fora de controllers e adaptadores de protocolo.
+- Services recebem Commands e retornam Results da aplicação; não recebem nem
+  retornam DTOs de HTTP ou MCP.
+- Mapeamentos não triviais devem ser puros e permanecer na fronteira que
+  conhecem. Não concentre mapeamentos de transporte e persistência em
+  controllers ou services.
 - Use `packages/contracts` para contratos compartilhados, `packages/database`
   para persistência, `packages/config` para configuração e
   `packages/observability` para logs e telemetria.

@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@arcsyn-io/react": "^0.1.0",
     "@tanstack/react-query": "^5.62.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -25,8 +26,5 @@
     "typescript": "^5.7.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5"
-  },
-  "optionalDependencies": {
-    "@arcsyn-io/ds": "^0.1.0"
   }
 }

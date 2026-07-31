@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { HealthResponse, McpHealthResponse } from '@arcsyn-shift/contracts';
-import { CheckHealthUseCase } from '../domain/check-health.use-case.js';
+import { CheckHealthUseCase } from '../domain/use-cases/check-health.use-case.js';
 
 @Injectable()
 export class HealthService {

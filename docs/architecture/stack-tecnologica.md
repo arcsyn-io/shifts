@@ -37,7 +37,8 @@ A aplicação web reside em `apps/web` e utiliza:
 - TanStack Query 5 para estado remoto, cache e sincronização;
 - React Hook Form 7 para estado e interação de formulários;
 - Zod 3 para validação e interpretação de dados nas fronteiras;
-- `@arcsyn-io/ds` 0.1 como design system opcional já declarado.
+- `@arcsyn-io/react` 0.1 como adaptador React obrigatório do ArcSyn Design
+  System, distribuído pelo GitHub Packages.
 
 Não adicione soluções concorrentes para roteamento, estado remoto, formulários
 ou validação sem decisão arquitetural aprovada. Estado estritamente local da

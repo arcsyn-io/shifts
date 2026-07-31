@@ -43,14 +43,35 @@ describe('createModule', () => {
 
     const moduleRoot = await createModule('work-shifts', { sourceRoot });
 
-    await expect(readFile(path.join(moduleRoot, 'application/.gitkeep'), 'utf8')).resolves.toBe('');
-    await expect(readFile(path.join(moduleRoot, 'domain/.gitkeep'), 'utf8')).resolves.toBe('');
-    await expect(readFile(path.join(moduleRoot, 'repository/.gitkeep'), 'utf8')).resolves.toBe('');
     await expect(
-      readFile(path.join(moduleRoot, 'presentation/http/.gitkeep'), 'utf8'),
+      readFile(path.join(moduleRoot, 'application/commands/.gitkeep'), 'utf8'),
     ).resolves.toBe('');
     await expect(
-      readFile(path.join(moduleRoot, 'presentation/mcp/.gitkeep'), 'utf8'),
+      readFile(path.join(moduleRoot, 'application/results/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(readFile(path.join(moduleRoot, 'domain/entities/.gitkeep'), 'utf8')).resolves.toBe(
+      '',
+    );
+    await expect(
+      readFile(path.join(moduleRoot, 'domain/use-cases/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'domain/value-objects/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'presentation/http/dto/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'presentation/http/mappers/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'presentation/mcp/dto/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'presentation/mcp/mappers/.gitkeep'), 'utf8'),
+    ).resolves.toBe('');
+    await expect(
+      readFile(path.join(moduleRoot, 'repository/mappers/.gitkeep'), 'utf8'),
     ).resolves.toBe('');
     await expect(
       readFile(path.join(moduleRoot, 'work-shifts.module.ts'), 'utf8'),
@@ -81,7 +102,7 @@ describe('checkArchitecture', () => {
     await createModule('health', { sourceRoot });
     await writeSource(
       sourceRoot,
-      'modules/health/presentation/mcp/health.tool.ts',
+      'modules/health/presentation/mcp/health-mcp.tool.ts',
       "import type { McpTool } from '../../../../infrastructure/mcp/mcp-tool.js';\n" +
         "import { HealthService } from '../../application/health.service.js';\n" +
         'export class HealthTool implements McpTool {}\n',
@@ -171,19 +192,116 @@ describe('checkArchitecture', () => {
     );
   });
 
+  it('reports modular artifacts created outside src/modules', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('health', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'infrastructure/rogue.command.ts',
+      'export class RogueCommand {}\n',
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual([
+      expect.stringContaining('Command modular deve ficar em src/modules/<modulo>/application/commands'),
+    ]);
+  });
+
+  it('accepts the shared MCP controller and tool contract outside modules', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('health', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'infrastructure/mcp/mcp.controller.ts',
+      'export class McpController {}\n',
+    );
+    await writeSource(
+      sourceRoot,
+      'infrastructure/mcp/mcp-tool.ts',
+      'export interface McpTool {}\n',
+    );
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
   it('reports a stale .gitkeep beside real content', async () => {
     const sourceRoot = await createTemporarySource();
     await createModule('health', { sourceRoot });
     await writeSource(
       sourceRoot,
-      'modules/health/domain/health-status.ts',
-      'export class HealthStatus {}\n',
+      'modules/health/domain/entities/health.entity.ts',
+      'export class HealthEntity {}\n',
       { preserveGitkeep: true },
     );
 
     expect(await checkArchitecture({ sourceRoot })).toEqual([
-      expect.stringContaining('domain/.gitkeep: remova o .gitkeep'),
+      expect.stringContaining('domain/entities/.gitkeep: remova o .gitkeep'),
     ]);
+  });
+
+  it('accepts DTOs, commands, results and mappers in approved directories', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('shifts', { sourceRoot });
+    const approvedArtifacts = [
+      ['presentation/http/dto/create-shift.request.dto.ts', 'export class CreateShiftDto {}\n'],
+      ['presentation/http/mappers/shift.mapper.ts', 'export class HttpShiftMapper {}\n'],
+      ['presentation/mcp/dto/find-shift.response.dto.ts', 'export interface FindShiftDto {}\n'],
+      ['presentation/mcp/mappers/shift.mapper.ts', 'export class McpShiftMapper {}\n'],
+      ['application/commands/create-shift.command.ts', 'export class CreateShiftCommand {}\n'],
+      ['application/results/create-shift.result.ts', 'export type CreateShiftResult = {};\n'],
+      ['repository/mappers/shift.mapper.ts', 'export class ShiftRepositoryMapper {}\n'],
+    ] as const;
+
+    for (const [relativePath, source] of approvedArtifacts) {
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+    }
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
+  it.each([
+    {
+      relativePath: 'domain/create-shift.request.dto.ts',
+      source: 'export class CreateShiftDto {}\n',
+      expected: 'DTO deve ficar em presentation/http/dto ou presentation/mcp/dto',
+    },
+    {
+      relativePath: 'presentation/http/create-shift.command.ts',
+      source: 'export class CreateShiftCommand {}\n',
+      expected: 'Command deve ficar em application/commands',
+    },
+    {
+      relativePath: 'application/create-shift.result.ts',
+      source: 'export type CreateShiftResult = {};\n',
+      expected: 'Result deve ficar em application/results',
+    },
+    {
+      relativePath: 'application/shift.mapper.ts',
+      source: 'export class ShiftMapper {}\n',
+      expected:
+        'Mapper deve ficar em presentation/http/mappers ou presentation/mcp/mappers ou repository/mappers',
+    },
+  ])(
+    'reports $relativePath outside its approved directory',
+    async ({ relativePath, source, expected }) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual(
+        expect.arrayContaining([expect.stringContaining(expected)]),
+      );
+    },
+  );
+
+  it.each([
+    'application/commands/internal/foo.ts',
+    'presentation/http/dto/internal/foo.ts',
+  ])('reports a generic file nested below a reserved directory: %s', async (relativePath) => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('shifts', { sourceRoot });
+    await writeSource(sourceRoot, `modules/shifts/${relativePath}`, 'export class Foo {}\n');
+
+    expect(await checkArchitecture({ sourceRoot })).not.toEqual([]);
   });
 
   it.each([
@@ -215,7 +333,13 @@ describe('checkArchitecture', () => {
   ])('reports an invalid import from $layer', async ({ layer, source, expected }) => {
     const sourceRoot = await createTemporarySource();
     await createModule('broken', { sourceRoot });
-    await writeSource(sourceRoot, `modules/broken/${layer}/invalid.ts`, source);
+    const fileNameByLayer: Record<string, string> = {
+      application: 'invalid.service.ts',
+      domain: 'invalid.ts',
+      'presentation/http': 'invalid.controller.ts',
+      repository: 'invalid.repository.ts',
+    };
+    await writeSource(sourceRoot, `modules/broken/${layer}/${fileNameByLayer[layer]}`, source);
 
     expect(await checkArchitecture({ sourceRoot })).toEqual([expect.stringContaining(expected)]);
   });
@@ -226,7 +350,7 @@ describe('checkArchitecture', () => {
     await createModule('second', { sourceRoot });
     await writeSource(
       sourceRoot,
-      'modules/first/application/invalid.ts',
+      'modules/first/application/invalid.service.ts',
       "import { Other } from '../../second/domain/other.js';\n",
     );
 
@@ -234,4 +358,93 @@ describe('checkArchitecture', () => {
       expect.stringContaining('nao pode importar caminho interno do modulo "second"'),
     ]);
   });
+
+  it('reports a DTO class whose file does not declare request or response', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('shifts', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/shifts/presentation/http/dto/create-shift.ts',
+      'export class CreateShiftDto {}\n',
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual([
+      expect.stringContaining('DTO deve usar *.request.dto.ts ou *.response.dto.ts'),
+    ]);
+  });
+
+  it.each([
+    ['application/commands/create-shift.ts', 'export class CreateShiftCommand {}\n', 'Command'],
+    ['application/results/createShift.result.ts', 'export type CreateShiftResult = {};\n', 'Result'],
+    ['presentation/http/mappers/shift.ts', 'export class ShiftMapper {}\n', 'Mapper'],
+    ['domain/entities/shift.ts', 'export class ShiftEntity {}\n', 'Entity'],
+  ] as const)(
+    'reports an invalid file name inside a reserved directory: %s',
+    async (relativePath, source, artifactName) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual([
+        expect.stringContaining(`${artifactName} deve usar`),
+      ]);
+    },
+  );
+
+  it.each([
+    ['application/commands/shift.service.ts', 'export class ShiftService {}\n', 'Service'],
+    ['presentation/http/dto/shift.controller.ts', 'export class ShiftController {}\n', 'Controller'],
+  ] as const)(
+    'reports an architectural class nested outside its exact directory: %s',
+    async (relativePath, source, artifactName) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual(
+        expect.arrayContaining([expect.stringContaining(`${artifactName} deve ficar em`)]),
+      );
+    },
+  );
+
+  it('accepts architectural classes in their approved layers', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('shifts', { sourceRoot });
+    const approvedClasses = [
+      ['presentation/http/shift.controller.ts', 'export class ShiftController {}\n'],
+      ['presentation/mcp/shift-mcp.tool.ts', 'export class ShiftMcpTool {}\n'],
+      ['application/shift.service.ts', 'export class ShiftService {}\n'],
+      ['domain/use-cases/create-shift.use-case.ts', 'export class CreateShiftUseCase {}\n'],
+      ['domain/entities/shift.entity.ts', 'export class ShiftEntity {}\n'],
+      ['domain/value-objects/shift-code.value-object.ts', 'export class ShiftCodeValueObject {}\n'],
+      ['repository/shift.repository.ts', 'export class ShiftRepository {}\n'],
+    ] as const;
+
+    for (const [relativePath, source] of approvedClasses) {
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+    }
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
+  it.each([
+    ['application/shift.controller.ts', 'export class ShiftController {}\n', 'Controller'],
+    ['application/shift.tool.ts', 'export class ShiftMcpTool {}\n', 'McpTool'],
+    ['domain/shift.service.ts', 'export class ShiftService {}\n', 'Service'],
+    ['domain/create-shift.use-case.ts', 'export class CreateShiftUseCase {}\n', 'UseCase'],
+    ['domain/shift.entity.ts', 'export class ShiftEntity {}\n', 'Entity'],
+    ['domain/shift-code.value-object.ts', 'export class ShiftCodeValueObject {}\n', 'ValueObject'],
+    ['application/shift.repository.ts', 'export class ShiftRepository {}\n', 'Repository'],
+  ] as const)(
+    'reports %s outside its approved layer',
+    async (relativePath, source, artifactName) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual(
+        expect.arrayContaining([expect.stringContaining(`${artifactName} deve ficar em`)]),
+      );
+    },
+  );
 });

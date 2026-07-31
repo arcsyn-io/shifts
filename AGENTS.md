@@ -41,3 +41,6 @@ agente `requirements_architect` definido em
 Delegue ao `security_reviewer` mudanças que envolvam autenticação, autorização,
 dados sensíveis, entradas externas, integrações, dependências, infraestrutura ou
 limites de confiança.
+
+Delegue ao `qa_engineer` a criação de cenários para funcionalidades não triviais
+e a validação dos critérios de aceite após a implementação.

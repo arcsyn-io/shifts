@@ -9,6 +9,9 @@ BEGIN
 END
 $$;
 
+ALTER ROLE arcsyn_shift_migration WITH PASSWORD 'arcsyn_shift_migration';
+ALTER ROLE arcsyn_shift_application WITH PASSWORD 'arcsyn_shift_application';
+
 GRANT CONNECT ON DATABASE arcsyn_shift TO arcsyn_shift_application;
 GRANT CONNECT ON DATABASE arcsyn_shift TO arcsyn_shift_migration;
 GRANT USAGE ON SCHEMA public TO arcsyn_shift_application;

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Validar projeto
+    name: project-checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

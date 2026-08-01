@@ -10,7 +10,7 @@ import { AppModule } from './app.module.js';
 import { DATABASE_POOL } from './infrastructure/database/database.module.js';
 import type { Pool } from 'pg';
 
-export async function bootstrap() {
+async function bootstrap() {
   const config = loadConfig();
   const port = config.PORT ?? config.API_PORT;
   const logger = createLogger(config.LOG_LEVEL);
@@ -29,7 +29,6 @@ export async function bootstrap() {
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
   await app.listen(port, '0.0.0.0');
   logger.info({ port, mcp: config.MCP_ENABLED }, 'API started');
-  return app;
 }
 
-if (process.env.NODE_ENV !== 'test') void bootstrap();
+bootstrap();

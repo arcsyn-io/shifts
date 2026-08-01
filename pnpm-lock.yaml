@@ -134,37 +134,6 @@ importers:
         specifier: ^6.0.5
         version: 6.4.3(@types/node@22.20.1)(tsx@4.23.1)(yaml@2.9.0)
 
-  apps/worker:
-    dependencies:
-      '@arcsyn-shift/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@arcsyn-shift/database':
-        specifier: workspace:*
-        version: link:../../packages/database
-      '@arcsyn-shift/observability':
-        specifier: workspace:*
-        version: link:../../packages/observability
-      '@nestjs/common':
-        specifier: ^11.0.11
-        version: 11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@nestjs/core':
-        specifier: ^11.0.11
-        version: 11.1.28(@nestjs/common@11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      reflect-metadata:
-        specifier: ^0.2.2
-        version: 0.2.2
-      rxjs:
-        specifier: ^7.8.1
-        version: 7.8.2
-    devDependencies:
-      '@arcsyn-shift/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      tsx:
-        specifier: ^4.19.2
-        version: 4.23.1
-
   packages/config:
     dependencies:
       zod:

@@ -12,6 +12,7 @@ import type { Pool } from 'pg';
 
 export async function bootstrap() {
   const config = loadConfig();
+  const port = config.PORT ?? config.API_PORT;
   const logger = createLogger(config.LOG_LEVEL);
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
     logger: false,
@@ -26,8 +27,8 @@ export async function bootstrap() {
     .setVersion('0.1.0')
     .build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
-  await app.listen(config.API_PORT, '0.0.0.0');
-  logger.info({ port: config.API_PORT, mcp: config.MCP_ENABLED }, 'API started');
+  await app.listen(port, '0.0.0.0');
+  logger.info({ port, mcp: config.MCP_ENABLED }, 'API started');
   return app;
 }
 

@@ -11,7 +11,7 @@
 - Ao alterar comportamento, adicione ou atualize testes no nível mais próximo
   capaz de verificá-lo.
 
-## Backend e worker
+## Backend
 
 Use o gerador e o validador descritos em
 [Criação e validação de módulos da API](modulos-api.md).

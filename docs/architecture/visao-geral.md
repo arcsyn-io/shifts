@@ -7,7 +7,6 @@ A baseline de runtime, frameworks, bibliotecas e infraestrutura está em
 
 - `apps/api`: API NestJS com Fastify e adaptadores de apresentação HTTP e MCP.
 - `apps/web`: aplicação web React construída com Vite.
-- `apps/worker`: processamento em segundo plano com NestJS.
 - `packages/contracts`: contratos e esquemas compartilhados.
 - `packages/database`: esquema, cliente e migrações do PostgreSQL com Drizzle.
 - `packages/config`: leitura e validação centralizada de configuração.

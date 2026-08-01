@@ -58,15 +58,6 @@ A API reside em `apps/api` e utiliza:
 Fastify é o adaptador HTTP adotado. Não introduza Express ou outro servidor em
 paralelo. Controllers HTTP e adaptadores MCP não devem conter regras de negócio.
 
-## Worker
-
-O processo em segundo plano reside em `apps/worker` e utiliza NestJS 11 para
-composição e injeção de dependências. Ele compartilha configuração, persistência
-e observabilidade com a API.
-
-Ainda não existe broker, fila ou mecanismo de agendamento adotado. A escolha de
-um deles exige requisitos explícitos, análise de operação e uma ADR.
-
 ## Contratos e configuração
 
 - `packages/contracts` concentra esquemas e tipos compartilhados com Zod 3.
@@ -132,10 +123,9 @@ framework, runtime, provedor ou limite arquitetural.
 
 Não há decisão aprovada no repositório para:
 
-- provedor de nuvem ou plataforma de produção;
+- estratégia de processamento assíncrono, caso essa capacidade seja necessária;
 - orquestração de contêineres em produção;
 - pipeline de CI/CD;
-- broker, fila ou agendador do worker;
 - provedor de identidade e estratégia completa de autenticação;
 - backend de métricas, traces, logs e alertas;
 - ferramenta de testes de navegador ou ponta a ponta;

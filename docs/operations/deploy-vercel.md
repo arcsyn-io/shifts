@@ -13,6 +13,11 @@ Use Node.js 22 nos dois projetos. A Vercel reconhece o `pnpm-lock.yaml` da raiz
 e os pacotes `workspace:*`. Mantenha habilitada a inclusão de arquivos externos
 ao Root Directory para que os pacotes compartilhados sejam construídos.
 
+Os arquivos `vercel.json` executam o build filtrado do Turborepo a partir da
+raiz do monorepo. Esse fluxo compila primeiro os pacotes compartilhados e depois
+a aplicação selecionada; não substitua o comando pelo build isolado de
+`apps/api` ou `apps/web`.
+
 ## Ordem de configuração
 
 1. Importe e publique o projeto da API.

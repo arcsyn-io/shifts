@@ -22,6 +22,12 @@ ao Root Directory para que os pacotes compartilhados sejam construídos.
 5. Defina `VITE_API_URL` com o origin HTTPS estável da API, sem caminho final.
 6. Publique o web e valide uma rota profunda da SPA.
 
+Nos ambientes Preview e Production do projeto web, configure `NODE_AUTH_TOKEN`
+como Sensitive para baixar os pacotes `@arcsyn-io/*` do GitHub Packages. Use um
+PAT classic com somente o escopo `read:packages`, preferencialmente de uma conta
+técnica, com expiração e rotação definidas. Não disponibilize esse token ao
+projeto da API.
+
 ## Variáveis da API
 
 O runtime da API valida somente estas variáveis no bootstrap:

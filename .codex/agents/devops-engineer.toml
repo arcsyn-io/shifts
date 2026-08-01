@@ -90,7 +90,7 @@ requirements_architect para análise e possível ADR.
 - Derive sinais operacionais dos requisitos e riscos, não de métricas fáceis de
   coletar.
 - Diferencie logs, métricas, traces, auditoria e alertas por finalidade.
-- Propague identificadores de correlação entre API, MCP, worker e integrações.
+- Propague identificadores de correlação entre API, MCP e integrações.
 - Não registre dados pessoais, segredos, tokens ou conteúdo sensível.
 - Crie alertas acionáveis, com condição, impacto, responsável e procedimento.
 - Evite alertas sem ação ou limites arbitrários sem justificativa.

@@ -34,7 +34,7 @@ Exemplos:
 feat(api): adiciona consulta de turnos
 fix(database): corrige conexão das migrações
 docs(architecture): registra decisão sobre eventos
-test(worker): adiciona cenários de reprocessamento
+test(api): adiciona cenários de autorização
 chore: configura agente de requisitos
 ```
 
@@ -91,8 +91,8 @@ permite reutilizá-lo como mensagem do commit final quando o repositório adotar
 - Para alterações responsivas, inclua pelo menos uma evidência desktop e uma
   mobile.
 - Para API ou MCP, prefira exemplos reduzidos de request e response.
-- Para worker, infraestrutura ou operação, apresente logs ou resultados
-  relevantes sem dados sensíveis.
+- Para infraestrutura ou operação, apresente logs ou resultados relevantes sem
+  dados sensíveis.
 - Anexe screenshots à PR; não adicione imagens ao repositório somente para
   documentar a revisão.
 - Se a ferramenta usada para abrir a PR não puder anexar uma evidência

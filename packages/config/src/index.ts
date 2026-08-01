@@ -5,18 +5,11 @@ const booleanFromEnv = z.enum(['true', 'false']).transform((value) => value === 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().url(),
-  DATABASE_MIGRATION_URL: z.string().url(),
+  PORT: z.coerce.number().int().positive().optional(),
   API_PORT: z.coerce.number().int().positive().default(3000),
   WEB_URL: z.string().url(),
   API_URL: z.string().url(),
-  MCP_ENABLED: booleanFromEnv.default('true'),
-  MCP_PATH: z.string().startsWith('/').default('/mcp'),
-  S3_ENDPOINT: z.string().url(),
-  S3_REGION: z.string().min(1),
-  S3_BUCKET: z.string().min(1),
-  S3_ACCESS_KEY: z.string().min(1),
-  S3_SECRET_KEY: z.string().min(1),
-  S3_FORCE_PATH_STYLE: booleanFromEnv.default('true'),
+  MCP_ENABLED: booleanFromEnv.default('false'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 });
 

@@ -25,7 +25,7 @@ diretório.
 | Planejamento, conflitos entre fontes ou regras gerais   | [Princípios e fontes de verdade](docs/agents/principios-e-fontes.md)  |
 | Fronteiras, pacotes, contratos, dados ou integrações    | [Visão geral da arquitetura](docs/architecture/visao-geral.md)        |
 | Funcionalidade não trivial, especificação, plano ou ADR | [Fluxo de especificações e ADRs](docs/specifications/fluxo-e-adrs.md) |
-| Código de aplicação, frontend, backend, worker ou banco | [Convenções de implementação](docs/development/implementacao.md)      |
+| Código de aplicação, frontend, backend ou banco         | [Convenções de implementação](docs/development/implementacao.md)      |
 | Testes, build, lint, typecheck ou definição de pronto   | [Verificações](docs/development/verificacoes.md)                      |
 | Commit, branch, histórico, push ou pull request         | [Git e commits](docs/development/git-e-commits.md)                    |
 
@@ -48,8 +48,8 @@ e a validação dos critérios de aceite após a implementação.
 Delegue ao `frontend_developer` tarefas aprovadas e restritas a `apps/web` após
 a definição dos contratos compartilhados.
 
-Delegue ao `backend_developer` tarefas aprovadas de API, worker e persistência,
-com propriedade explícita para qualquer pacote compartilhado afetado.
+Delegue ao `backend_developer` tarefas aprovadas de API e persistência, com
+propriedade explícita para qualquer pacote compartilhado afetado.
 
 Delegue ao `devops_engineer` tarefas aprovadas de CI/CD, contêineres,
 infraestrutura, implantação e confiabilidade operacional.

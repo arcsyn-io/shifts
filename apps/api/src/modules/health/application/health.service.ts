@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { HealthResponse, McpHealthResponse } from '@arcsyn-shift/contracts';
 import { CheckHealthUseCase } from '../domain/use-cases/check-health.use-case.js';
 
 @Injectable()
 export class HealthService {
-  constructor(private readonly checkHealth: CheckHealthUseCase) {}
+  constructor(@Inject(CheckHealthUseCase) private readonly checkHealth: CheckHealthUseCase) {}
 
   getHttpHealth(): HealthResponse {
     return { status: this.checkHealth.execute().value, database: 'connected' };

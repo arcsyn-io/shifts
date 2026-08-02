@@ -17,10 +17,13 @@
     "@arcsyn-shift/contracts": "workspace:*",
     "@arcsyn-shift/database": "workspace:*",
     "@arcsyn-shift/observability": "workspace:*",
+    "@fastify/static": "^8.0.0",
     "@nestjs/common": "^11.0.11",
     "@nestjs/core": "^11.0.11",
     "@nestjs/platform-fastify": "^11.0.11",
-    "@nestjs/swagger": "^8.1.0",
+    "@nestjs/swagger": "^11.4.6",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
     "fastify": "^5.2.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.2",
@@ -28,8 +31,8 @@
   },
   "devDependencies": {
     "@arcsyn-shift/typescript-config": "workspace:*",
-    "tsx": "^4.19.2",
     "@types/node": "^22.10.2",
-    "@types/pg": "^8.11.10"
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2"
   }
 }

@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { McpServer } from './mcp-server.js';
 
 @Controller('mcp')
 export class McpController {
-  constructor(private readonly server: McpServer) {}
+  constructor(@Inject(McpServer) private readonly server: McpServer) {}
 
   @Get()
   info() {

@@ -4,6 +4,7 @@
   "packageManager": "pnpm@9.15.5",
   "scripts": {
     "dev": "turbo dev",
+    "dev:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-local.ps1",
     "build": "turbo build",
     "test": "turbo test",
     "lint": "pnpm architecture:check && turbo lint",

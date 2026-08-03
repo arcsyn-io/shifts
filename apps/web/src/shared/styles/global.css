@@ -37,8 +37,74 @@ body {
   min-block-size: var(--arcsyn-control-height-lg);
 }
 
+.auth-state-page,
+.login-page {
+  background: var(--arcsyn-color-background);
+  color: var(--arcsyn-color-foreground);
+  min-block-size: 100vh;
+  min-block-size: 100dvh;
+}
+
+.auth-state-page {
+  display: grid;
+  place-items: center;
+  padding: var(--arcsyn-spacing-6);
+}
+
+.login-page {
+  align-items: center;
+  display: grid;
+  padding: var(--arcsyn-spacing-8);
+}
+
+.login-page__content {
+  display: grid;
+  gap: var(--arcsyn-spacing-4);
+  inline-size: min(100%, 28rem);
+  margin-inline: auto;
+}
+
+.login-page__notice {
+  color: var(--arcsyn-color-warning-foreground);
+  font-size: var(--arcsyn-font-size-sm);
+  margin: 0;
+  text-align: center;
+}
+
+.login-card {
+  box-shadow: var(--arcsyn-shadow-md);
+}
+
+.login-card .arcsyn-card__header {
+  align-items: start;
+  display: grid;
+  gap: var(--arcsyn-spacing-2);
+  inline-size: 100%;
+}
+
+.login-form,
+.logout-control {
+  display: grid;
+  gap: var(--arcsyn-spacing-4);
+}
+
+.login-form__submit {
+  inline-size: 100%;
+}
+
+.home-page__user {
+  color: var(--arcsyn-color-muted-foreground);
+  font-size: var(--arcsyn-font-size-sm);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 39.99rem) {
   .home-page {
+    align-items: start;
+    padding: var(--arcsyn-spacing-4);
+  }
+
+  .login-page {
     align-items: start;
     padding: var(--arcsyn-spacing-4);
   }

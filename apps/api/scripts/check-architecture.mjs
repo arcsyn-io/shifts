@@ -18,7 +18,51 @@ const SHARED_ARTIFACT_EXCEPTIONS = new Set([
   'infrastructure/mcp/mcp.controller.ts',
   'infrastructure/mcp/mcp-tool.ts',
 ]);
+const STRICT_ARTIFACT_DIRECTORIES = new Set([
+  'application/commands',
+  'application/results',
+  'domain/entities',
+  'domain/use-cases',
+  'domain/value-objects',
+  'presentation/http/dto',
+  'presentation/http/mappers',
+  'presentation/mcp/dto',
+  'presentation/mcp/mappers',
+  'repository/mappers',
+]);
 const ARTIFACT_RULES = [
+  {
+    name: 'Guard',
+    filePattern: /\.guard\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Guard'],
+    allowedDirectories: ['presentation/http'],
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.guard\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Guard deve usar <nome-em-kebab-case>.guard.ts',
+  },
+  {
+    name: 'Metadata',
+    filePattern: /\.metadata\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: [],
+    allowedDirectories: ['presentation/http'],
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.metadata\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Metadata deve usar <nome-em-kebab-case>.metadata.ts',
+  },
+  {
+    name: 'Cookies',
+    filePattern: /\.cookies\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: [],
+    allowedDirectories: ['presentation/http'],
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.cookies\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Cookies deve usar <nome-em-kebab-case>.cookies.ts',
+  },
+  {
+    name: 'Pipe',
+    filePattern: /\.pipe\.(?:ts|tsx|mts|cts)$/i,
+    identifierSuffixes: ['Pipe'],
+    allowedDirectories: ['presentation/http'],
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.pipe\.(?:ts|tsx|mts|cts)$/,
+    requiredFileMessage: 'Pipe deve usar <nome-em-kebab-case>.pipe.ts',
+  },
   {
     name: 'DTO',
     filePattern: /\.dto\.(?:ts|tsx|mts|cts)$/i,
@@ -35,8 +79,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Command'],
     allowedDirectories: ['application/commands'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Command deve usar <nome-em-kebab-case>.command.ts',
   },
   {
@@ -45,8 +88,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Result'],
     allowedDirectories: ['application/results'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Result deve usar <nome-em-kebab-case>.result.ts',
   },
   {
@@ -59,8 +101,7 @@ const ARTIFACT_RULES = [
       'repository/mappers',
     ],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Mapper deve usar <nome-em-kebab-case>.mapper.ts',
   },
   {
@@ -68,8 +109,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.controller\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Controller'],
     allowedDirectories: ['presentation/http'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Controller deve usar <nome-em-kebab-case>.controller.ts',
   },
   {
@@ -77,8 +117,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.tool\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['McpTool'],
     allowedDirectories: ['presentation/mcp'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'McpTool deve usar <nome-em-kebab-case>-mcp.tool.ts',
   },
   {
@@ -86,8 +125,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.service\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Service'],
     allowedDirectories: ['application'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Service deve usar <nome-em-kebab-case>.service.ts',
   },
   {
@@ -96,8 +134,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['UseCase'],
     allowedDirectories: ['domain/use-cases'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'UseCase deve usar <nome-em-kebab-case>.use-case.ts',
   },
   {
@@ -106,8 +143,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Entity'],
     allowedDirectories: ['domain/entities'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Entity deve usar <nome-em-kebab-case>.entity.ts',
   },
   {
@@ -116,8 +152,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['ValueObject'],
     allowedDirectories: ['domain/value-objects'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'ValueObject deve usar <nome-em-kebab-case>.value-object.ts',
   },
   {
@@ -125,8 +160,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.repository\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Repository'],
     allowedDirectories: ['repository'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Repository deve usar <nome-em-kebab-case>.repository.ts',
   },
 ];
@@ -209,17 +243,20 @@ function validateArtifactLocation(relativeFile, source, moduleName) {
   const fileName = path.posix.basename(moduleRelativePath);
 
   for (const rule of ARTIFACT_RULES) {
-    const declarationPattern = new RegExp(
-      `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
-    );
+    const declarationPattern = rule.identifierSuffixes.length
+      ? new RegExp(
+          `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
+        )
+      : null;
     const isInReservedDirectory = rule.allowedDirectories.includes(fileDirectory);
     const isBelowReservedDirectory =
       rule.forbidSubdirectories === true &&
       rule.allowedDirectories.some((directory) => fileDirectory.startsWith(`${directory}/`));
     const matchesArtifact =
       rule.filePattern.test(fileName) ||
-      declarationPattern.test(source) ||
-      isInReservedDirectory ||
+      declarationPattern?.test(source) ||
+      (isInReservedDirectory &&
+        rule.allowedDirectories.some((directory) => STRICT_ARTIFACT_DIRECTORIES.has(directory))) ||
       isBelowReservedDirectory;
 
     if (!matchesArtifact) continue;
@@ -252,10 +289,12 @@ function validateArtifactsOutsideModules(relativeFile, source) {
   const errors = [];
 
   for (const rule of ARTIFACT_RULES) {
-    const declarationPattern = new RegExp(
-      `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
-    );
-    if (!rule.filePattern.test(fileName) && !declarationPattern.test(source)) continue;
+    const declarationPattern = rule.identifierSuffixes.length
+      ? new RegExp(
+          `\\b(?:abstract\\s+)?(?:class|interface|type|enum)\\s+[A-Za-z_$][\\w$]*(?:${rule.identifierSuffixes.join('|')})\\b`,
+        )
+      : null;
+    if (!rule.filePattern.test(fileName) && !declarationPattern?.test(source)) continue;
 
     errors.push(
       `${relativeFile}: ${rule.name} modular deve ficar em src/modules/<modulo>/${rule.allowedDirectories.join(' ou ')}.`,

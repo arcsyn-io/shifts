@@ -1,7 +1,10 @@
 import { PageHeader } from '@arcsyn-io/react';
+import { LogoutButton, useAuth } from '@/features/auth';
 import { HealthStatus } from '@/features/health';
 
 export function HomePage() {
+  const auth = useAuth();
+
   return (
     <main className="home-page" data-arcsyn-theme="dark">
       <div className="home-page__content">
@@ -14,6 +17,12 @@ export function HomePage() {
               implemented.
             </PageHeader.Description>
           </PageHeader.Content>
+          <PageHeader.Metadata>
+            <span className="home-page__user">Signed in as {auth.session?.user.email}</span>
+          </PageHeader.Metadata>
+          <PageHeader.Actions>
+            <LogoutButton />
+          </PageHeader.Actions>
         </PageHeader>
         <HealthStatus />
       </div>

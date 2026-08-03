@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, SetMetadata } from '@nestjs/common';
 import { McpServer } from './mcp-server.js';
 
+@SetMetadata('auth:public', true)
+@SetMetadata('auth:skip-origin', true)
 @Controller('mcp')
 export class McpController {
   constructor(@Inject(McpServer) private readonly server: McpServer) {}

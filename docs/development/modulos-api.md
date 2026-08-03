@@ -106,6 +106,10 @@ técnico do MCP possuem exceções explícitas em `src/infrastructure/mcp`.
 | DTO HTTP               | `presentation/http/dto`     | `*.request.dto.ts` ou `*.response.dto.ts` |
 | Mapper HTTP            | `presentation/http/mappers` | `*.mapper.ts`                             |
 | Controller HTTP        | `presentation/http`         | `*.controller.ts`                         |
+| Guard HTTP             | `presentation/http`         | `*.guard.ts`                              |
+| Metadados HTTP         | `presentation/http`         | `*.metadata.ts`                           |
+| Cookies HTTP           | `presentation/http`         | `*.cookies.ts`                            |
+| Pipe HTTP              | `presentation/http`         | `*.pipe.ts`                               |
 | DTO MCP                | `presentation/mcp/dto`      | `*.request.dto.ts` ou `*.response.dto.ts` |
 | Mapper MCP             | `presentation/mcp/mappers`  | `*.mapper.ts`                             |
 | Ferramenta MCP         | `presentation/mcp`          | `*-mcp.tool.ts`                           |
@@ -131,6 +135,7 @@ O validador verifica:
 - exceção controlada para o contrato MCP compartilhado;
 - bloqueio de imports por caminhos internos de outro módulo.
 - localização e nome em `kebab-case` dos artefatos reservados;
+- localização de guards, metadados, cookies e pipes concretos na fronteira HTTP;
 - ausência de subdiretórios nas pastas-folha reservadas;
 - ausência de artefatos modulares fora de `src/modules`.
 

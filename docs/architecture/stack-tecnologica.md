@@ -126,7 +126,9 @@ Não há decisão aprovada no repositório para:
 - estratégia de processamento assíncrono, caso essa capacidade seja necessária;
 - orquestração de contêineres em produção;
 - pipeline de CI/CD;
-- provedor de identidade e estratégia completa de autenticação;
+- provedor de identidade externo, MFA e recuperação pública de conta; a sessão
+  web local foi definida na
+  [ADR-0003](decisions/0003-sessao-web-jwt-cookie-http-only.md);
 - backend de métricas, traces, logs e alertas;
 - ferramenta de testes de navegador ou ponta a ponta;
 - estratégia de feature flags;

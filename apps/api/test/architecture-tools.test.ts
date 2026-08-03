@@ -202,7 +202,9 @@ describe('checkArchitecture', () => {
     );
 
     expect(await checkArchitecture({ sourceRoot })).toEqual([
-      expect.stringContaining('Command modular deve ficar em src/modules/<modulo>/application/commands'),
+      expect.stringContaining(
+        'Command modular deve ficar em src/modules/<modulo>/application/commands',
+      ),
     ]);
   });
 
@@ -293,16 +295,16 @@ describe('checkArchitecture', () => {
     },
   );
 
-  it.each([
-    'application/commands/internal/foo.ts',
-    'presentation/http/dto/internal/foo.ts',
-  ])('reports a generic file nested below a reserved directory: %s', async (relativePath) => {
-    const sourceRoot = await createTemporarySource();
-    await createModule('shifts', { sourceRoot });
-    await writeSource(sourceRoot, `modules/shifts/${relativePath}`, 'export class Foo {}\n');
+  it.each(['application/commands/internal/foo.ts', 'presentation/http/dto/internal/foo.ts'])(
+    'reports a generic file nested below a reserved directory: %s',
+    async (relativePath) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, 'export class Foo {}\n');
 
-    expect(await checkArchitecture({ sourceRoot })).not.toEqual([]);
-  });
+      expect(await checkArchitecture({ sourceRoot })).not.toEqual([]);
+    },
+  );
 
   it.each([
     {
@@ -375,7 +377,11 @@ describe('checkArchitecture', () => {
 
   it.each([
     ['application/commands/create-shift.ts', 'export class CreateShiftCommand {}\n', 'Command'],
-    ['application/results/createShift.result.ts', 'export type CreateShiftResult = {};\n', 'Result'],
+    [
+      'application/results/createShift.result.ts',
+      'export type CreateShiftResult = {};\n',
+      'Result',
+    ],
     ['presentation/http/mappers/shift.ts', 'export class ShiftMapper {}\n', 'Mapper'],
     ['domain/entities/shift.ts', 'export class ShiftEntity {}\n', 'Entity'],
   ] as const)(
@@ -393,7 +399,11 @@ describe('checkArchitecture', () => {
 
   it.each([
     ['application/commands/shift.service.ts', 'export class ShiftService {}\n', 'Service'],
-    ['presentation/http/dto/shift.controller.ts', 'export class ShiftController {}\n', 'Controller'],
+    [
+      'presentation/http/dto/shift.controller.ts',
+      'export class ShiftController {}\n',
+      'Controller',
+    ],
   ] as const)(
     'reports an architectural class nested outside its exact directory: %s',
     async (relativePath, source, artifactName) => {
@@ -422,6 +432,22 @@ describe('checkArchitecture', () => {
 
     for (const [relativePath, source] of approvedClasses) {
       await writeSource(sourceRoot, `modules/shifts/${relativePath}`, source);
+    }
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
+  it('accepts concrete HTTP boundary artifacts in presentation/http', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('auth', { sourceRoot });
+    const artifacts = [
+      ['presentation/http/auth.guard.ts', 'export class AuthGuard {}\n'],
+      ['presentation/http/auth.metadata.ts', "export const PUBLIC = 'public';\n"],
+      ['presentation/http/auth.cookies.ts', 'export const parseCookies = () => ({});\n'],
+      ['presentation/http/zod-body.pipe.ts', 'export class ZodBodyPipe {}\n'],
+    ] as const;
+    for (const [relativePath, source] of artifacts) {
+      await writeSource(sourceRoot, `modules/auth/${relativePath}`, source);
     }
 
     await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);

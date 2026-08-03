@@ -20,13 +20,15 @@ async function bootstrap() {
   await app.get<Pool>(DATABASE_POOL).query('select 1');
   app.setGlobalPrefix('api', { exclude: [{ path: 'mcp', method: RequestMethod.ALL }] });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.enableCors({ origin: config.WEB_URL });
+  app.enableCors({ origin: config.WEB_URL, credentials: true });
   app.enableShutdownHooks();
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('ArcSyn Shift API')
-    .setVersion('0.1.0')
-    .build();
-  SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
+  if (config.NODE_ENV === 'development') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('ArcSyn Shift API')
+      .setVersion('0.1.0')
+      .build();
+    SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
+  }
   await app.listen(port, '0.0.0.0');
   logger.info({ port, mcp: config.MCP_ENABLED }, 'API started');
 }

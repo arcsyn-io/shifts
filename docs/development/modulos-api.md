@@ -58,12 +58,16 @@ ser exportadas pelo módulo e registradas no agregador compartilhado em
 
 ## Responsabilidades
 
-- `application`: services e coordenação de domínio e persistência;
+- `application`: services, casos de uso de orquestração e coordenação de domínio
+  e persistência;
 - `application/commands`: intenções imutáveis e independentes de transporte;
 - `application/results`: resultados da aplicação independentes de protocolo;
+- `application/use-cases`: operações públicas que orquestram persistência,
+  serviços técnicos ou transações e expõem um método `execute`;
 - `domain`: objetos de domínio e use cases independentes de framework;
 - `domain/entities`: entidades com identidade do domínio;
-- `domain/use-cases`: regras de negócio executáveis;
+- `domain/use-cases`: regras de negócio executáveis e independentes de
+  framework, transporte e persistência;
 - `domain/value-objects`: valores do domínio sem identidade própria;
 - `presentation/http`: controllers e mapeamento do transporte HTTP;
 - `presentation/mcp`: ferramentas e handlers MCP do módulo;
@@ -100,7 +104,8 @@ técnico do MCP possuem exceções explícitas em `src/infrastructure/mcp`.
 | Command                | `application/commands`      | `*.command.ts`                            |
 | Result                 | `application/results`       | `*.result.ts`                             |
 | Service                | `application`               | `*.service.ts`                            |
-| Use case               | `domain/use-cases`          | `*.use-case.ts`                           |
+| Use case de aplicação  | `application/use-cases`     | `*.use-case.ts`                           |
+| Use case de domínio    | `domain/use-cases`          | `*.use-case.ts`                           |
 | Entity                 | `domain/entities`           | `*.entity.ts`                             |
 | Value object           | `domain/value-objects`      | `*.value-object.ts`                       |
 | DTO HTTP               | `presentation/http/dto`     | `*.request.dto.ts` ou `*.response.dto.ts` |
@@ -135,6 +140,8 @@ O validador verifica:
 - exceção controlada para o contrato MCP compartilhado;
 - bloqueio de imports por caminhos internos de outro módulo.
 - localização e nome em `kebab-case` dos artefatos reservados;
+- localização dos casos de uso de orquestração em `application/use-cases` e dos
+  casos de uso puros em `domain/use-cases`;
 - localização de guards, metadados, cookies e pipes concretos na fronteira HTTP;
 - ausência de subdiretórios nas pastas-folha reservadas;
 - ausência de artefatos modulares fora de `src/modules`.

@@ -22,7 +22,10 @@ import {
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 import { AUTH_CONFIG } from '../../auth.tokens.js';
-import { AuthError, AuthService } from '../../application/auth.service.js';
+import { AuthError } from '../../application/auth.error.js';
+import { LoginUseCase } from '../../application/use-cases/login.use-case.js';
+import { LogoutUseCase } from '../../application/use-cases/logout.use-case.js';
+import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case.js';
 import { PublicRoute, RequireCsrf } from './auth.metadata.js';
 import type { AuthenticatedRequest } from './auth.guard.js';
 import {
@@ -31,13 +34,16 @@ import {
   getAuthCookieNames,
   parseCookies,
 } from './auth.cookies.js';
+import { toAuthSessionResponse } from './mappers/auth-session.mapper.js';
 import { ZodBodyPipe } from './zod-body.pipe.js';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(AuthService) private readonly authService: AuthService,
+    @Inject(LoginUseCase) private readonly loginUseCase: LoginUseCase,
+    @Inject(RefreshTokenUseCase) private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    @Inject(LogoutUseCase) private readonly logoutUseCase: LogoutUseCase,
     @Inject(AUTH_CONFIG) private readonly config: AppConfig,
   ) {}
 
@@ -54,14 +60,14 @@ export class AuthController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<AuthSessionResponse> {
     try {
-      const session = await this.authService.login({
+      const session = await this.loginUseCase.execute({
         email: body.email,
         password: body.password,
         clientAddress: request.ip,
         correlationId: String(request.id),
       });
       reply.header('set-cookie', createSessionCookies(this.config, session));
-      return this.authService.toResponse(session, session.csrfToken);
+      return toAuthSessionResponse(session, session.csrfToken);
     } catch (error) {
       this.rethrowAuthError(error, 'invalid_credentials');
     }
@@ -74,7 +80,7 @@ export class AuthController {
   session(@Req() request: AuthenticatedRequest): AuthSessionResponse {
     const csrfToken = parseCookies(request.headers.cookie)[getAuthCookieNames(this.config).csrf];
     if (!request.auth || !csrfToken) throw new UnauthorizedException({ code: 'invalid_session' });
-    return this.authService.toResponse(request.auth, csrfToken);
+    return toAuthSessionResponse(request.auth, csrfToken);
   }
 
   @Post('refresh')
@@ -94,14 +100,14 @@ export class AuthController {
     const refreshToken = cookies[names.refresh];
     if (!csrfToken || !refreshToken) throw new UnauthorizedException({ code: 'invalid_session' });
     try {
-      const session = await this.authService.refresh({
+      const session = await this.refreshTokenUseCase.execute({
         refreshToken,
         csrfToken,
         clientAddress: request.ip,
         correlationId: String(request.id),
       });
       reply.header('set-cookie', createSessionCookies(this.config, session));
-      return this.authService.toResponse(session, session.csrfToken);
+      return toAuthSessionResponse(session, session.csrfToken);
     } catch (error) {
       reply.header('set-cookie', clearSessionCookies(this.config));
       this.rethrowAuthError(error, 'invalid_session');
@@ -121,12 +127,13 @@ export class AuthController {
     const cookies = parseCookies(request.headers.cookie);
     const names = getAuthCookieNames(this.config);
     const refreshToken = cookies[names.refresh];
+    const accessToken = cookies[names.access];
     const correlationId = String(request.id);
-    if (refreshToken) await this.authService.logout({ refreshToken, correlationId });
-    else {
-      const accessToken = cookies[names.access];
-      if (accessToken) await this.authService.logoutByAccessToken(accessToken, correlationId);
-    }
+    await this.logoutUseCase.execute({
+      ...(refreshToken ? { refreshToken } : {}),
+      ...(accessToken ? { accessToken } : {}),
+      correlationId,
+    });
     reply.header('set-cookie', clearSessionCookies(this.config));
   }
 

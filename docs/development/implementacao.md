@@ -19,18 +19,22 @@ Use o gerador e o validador descritos em
 - Organize capacidades da API em `src/modules/<modulo>`.
 - Cada módulo contém `application`, `presentation`, `domain` e `repository`,
   além de `<modulo>.module.ts`.
-- `application` contém services e coordena domínio e persistência.
+- `application` contém services, casos de uso de orquestração e coordena domínio
+  e persistência.
 - Commands independentes de transporte ficam em `application/commands` e os
   resultados da aplicação ficam em `application/results`.
+- Casos de uso que orquestram persistência, serviços técnicos ou transações
+  ficam em `application/use-cases`, usam arquivos `*.use-case.ts` e expõem uma
+  única operação pública `execute`.
 - `presentation` contém controllers HTTP e ferramentas ou handlers MCP.
 - DTOs e mappers pertencem ao protocolo que representam, em
   `presentation/http/dto`, `presentation/http/mappers`, `presentation/mcp/dto`
   ou `presentation/mcp/mappers`.
 - A apresentação MCP pode implementar o contrato técnico compartilhado pelo
   agregador em `infrastructure/mcp`, sem importar implementações do transporte.
-- `domain` contém objetos de domínio e use cases sem dependência de NestJS,
-  transporte ou persistência.
-- Use cases, entidades e value objects ficam, respectivamente, em
+- `domain` contém objetos de domínio e use cases puros, sem dependência de
+  NestJS, transporte ou persistência.
+- Use cases puros, entidades e value objects ficam, respectivamente, em
   `domain/use-cases`, `domain/entities` e `domain/value-objects`.
 - `repository` contém contratos e implementações de acesso a dados do módulo.
 - Mappers entre persistência e domínio ficam em `repository/mappers`.

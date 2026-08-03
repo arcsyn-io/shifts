@@ -1,12 +1,15 @@
 import type { AppConfig } from '@arcsyn-shift/config';
 import type { AppLogger } from '@arcsyn-shift/observability';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthError } from '../src/modules/auth/application/auth.error.js';
 import type { AuthTokenService } from '../src/modules/auth/application/auth-token.service.js';
-import { AuthError, AuthService } from '../src/modules/auth/application/auth.service.js';
 import type { PasswordService } from '../src/modules/auth/application/password.service.js';
+import { LoginUseCase } from '../src/modules/auth/application/use-cases/login.use-case.js';
+import { LogoutUseCase } from '../src/modules/auth/application/use-cases/logout.use-case.js';
+import { RefreshTokenUseCase } from '../src/modules/auth/application/use-cases/refresh-token.use-case.js';
 import type { AuthRepository } from '../src/modules/auth/repository/auth.repository.js';
 
-describe('AuthService', () => {
+describe('auth use cases', () => {
   const repository = {
     admitRateLimitAttempts: vi.fn(),
     findUserByEmail: vi.fn(),
@@ -36,12 +39,25 @@ describe('AuthService', () => {
     AUTH_LOGIN_BLOCK_SECONDS: 900,
   } as AppConfig;
 
-  const createService = () =>
-    new AuthService(
+  const createLoginUseCase = () =>
+    new LoginUseCase(
       repository as unknown as AuthRepository,
       tokens as unknown as AuthTokenService,
       passwords as unknown as PasswordService,
       config,
+      logger as unknown as AppLogger,
+    );
+  const createRefreshTokenUseCase = () =>
+    new RefreshTokenUseCase(
+      repository as unknown as AuthRepository,
+      tokens as unknown as AuthTokenService,
+      config,
+      logger as unknown as AppLogger,
+    );
+  const createLogoutUseCase = () =>
+    new LogoutUseCase(
+      repository as unknown as AuthRepository,
+      tokens as unknown as AuthTokenService,
       logger as unknown as AppLogger,
     );
 
@@ -50,6 +66,14 @@ describe('AuthService', () => {
     repository.admitRateLimitAttempts.mockResolvedValue(true);
     repository.clearRateLimit.mockResolvedValue(undefined);
     repository.createRefreshSession.mockResolvedValue('family-id');
+  });
+
+  it.each([
+    ['LoginUseCase', LoginUseCase.prototype],
+    ['RefreshTokenUseCase', RefreshTokenUseCase.prototype],
+    ['LogoutUseCase', LogoutUseCase.prototype],
+  ])('%s exposes only execute as a public prototype operation', (_name, prototype) => {
+    expect(Object.getOwnPropertyNames(prototype)).toEqual(['constructor', 'execute']);
   });
 
   it('returns the same generic error and records both buckets for an inactive account', async () => {
@@ -62,7 +86,7 @@ describe('AuthService', () => {
     passwords.verify.mockResolvedValue(true);
 
     await expect(
-      createService().login({
+      createLoginUseCase().execute({
         email: 'user@example.com',
         password: 'password',
         clientAddress: '127.0.0.1',
@@ -94,7 +118,7 @@ describe('AuthService', () => {
     passwords.verify.mockResolvedValue(true);
 
     await expect(
-      createService().login({
+      createLoginUseCase().execute({
         email: 'user@example.com',
         password: 'password',
         clientAddress: '127.0.0.1',
@@ -121,7 +145,7 @@ describe('AuthService', () => {
       '96c948b4-f67a-47a5-a45b-02f03c7ed21f.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 
     await expect(
-      createService().refresh({
+      createRefreshTokenUseCase().execute({
         refreshToken: validRefresh,
         csrfToken: 'csrf',
         clientAddress: '127.0.0.1',
@@ -137,13 +161,112 @@ describe('AuthService', () => {
       { event: 'auth.refresh', result: 'replay', correlationId: 'request-3' },
       'Refresh replay detected',
     );
+    expect(tokens.signAccessToken).not.toHaveBeenCalled();
+  });
+
+  it('rotates the refresh token and signs the renewed access session', async () => {
+    const validRefresh =
+      '96c948b4-f67a-47a5-a45b-02f03c7ed21f.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+    tokens.createRefreshToken.mockReturnValue({
+      id: 'next-id',
+      token: 'next-refresh',
+      hash: 'next-hash',
+    });
+    repository.rotateRefreshSession.mockResolvedValue({
+      status: 'rotated',
+      user: { id: 'user-id', email: 'user@example.com' },
+      familyId: 'family-id',
+    });
+
+    await expect(
+      createRefreshTokenUseCase().execute({
+        refreshToken: validRefresh,
+        csrfToken: 'csrf',
+        clientAddress: '127.0.0.1',
+        correlationId: 'request-refresh-success',
+      }),
+    ).resolves.toEqual({
+      user: { id: 'user-id', email: 'user@example.com' },
+      accessToken: 'access',
+      refreshToken: 'next-refresh',
+      csrfToken: 'csrf',
+    });
+    expect(repository.rotateRefreshSession).toHaveBeenCalledWith({
+      tokenId: '96c948b4-f67a-47a5-a45b-02f03c7ed21f',
+      tokenHash: `${validRefresh}-hash`,
+      csrfHash: 'csrf-hash',
+      nextTokenId: 'next-id',
+      nextTokenHash: 'next-hash',
+      nextExpiresAt: expect.any(Date),
+    });
+    expect(tokens.signAccessToken).toHaveBeenCalledWith({
+      user: { id: 'user-id', email: 'user@example.com' },
+      familyId: 'family-id',
+      csrfHash: 'csrf-hash',
+    });
+    expect(logger.info).toHaveBeenCalledWith(
+      {
+        event: 'auth.refresh',
+        result: 'succeeded',
+        userId: 'user-id',
+        correlationId: 'request-refresh-success',
+      },
+      'Refresh succeeded',
+    );
+  });
+
+  it('rejects a malformed refresh token without rotating or signing JWT', async () => {
+    await expect(
+      createRefreshTokenUseCase().execute({
+        refreshToken: 'malformed-refresh-token',
+        csrfToken: 'csrf',
+        clientAddress: '127.0.0.1',
+        correlationId: 'request-refresh-invalid',
+      }),
+    ).rejects.toMatchObject({ code: 'invalid_session' } satisfies Partial<AuthError>);
+
+    expect(repository.rotateRefreshSession).not.toHaveBeenCalled();
+    expect(tokens.signAccessToken).not.toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith(
+      {
+        event: 'auth.refresh',
+        result: 'rejected',
+        correlationId: 'request-refresh-invalid',
+      },
+      'Refresh rejected',
+    );
+  });
+
+  it('rejects a non-admitted refresh before rotating or signing JWT', async () => {
+    repository.admitRateLimitAttempts.mockResolvedValue(false);
+
+    await expect(
+      createRefreshTokenUseCase().execute({
+        refreshToken:
+          '96c948b4-f67a-47a5-a45b-02f03c7ed21f.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        csrfToken: 'csrf',
+        clientAddress: '127.0.0.1',
+        correlationId: 'request-refresh-rate-limit',
+      }),
+    ).rejects.toMatchObject({ code: 'rate_limited' } satisfies Partial<AuthError>);
+
+    expect(repository.rotateRefreshSession).not.toHaveBeenCalled();
+    expect(tokens.signAccessToken).not.toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith(
+      {
+        event: 'auth.refresh',
+        result: 'rate_limited',
+        correlationId: 'request-refresh-rate-limit',
+      },
+      'Refresh rate limited',
+    );
   });
 
   it('rejects a non-admitted login before loading or hashing credentials', async () => {
     repository.admitRateLimitAttempts.mockResolvedValue(false);
 
     await expect(
-      createService().login({
+      createLoginUseCase().execute({
         email: 'user@example.com',
         password: 'password',
         clientAddress: '127.0.0.1',
@@ -165,7 +288,10 @@ describe('AuthService', () => {
       csrfHash: 'csrf-hash',
     });
 
-    await createService().logoutByAccessToken('access-token', 'request-5');
+    await createLogoutUseCase().execute({
+      accessToken: 'access-token',
+      correlationId: 'request-5',
+    });
 
     expect(repository.revokeRefreshFamilyById).toHaveBeenCalledWith('family-id');
     expect(logger.info).toHaveBeenCalledWith(
@@ -177,8 +303,34 @@ describe('AuthService', () => {
   it('keeps access-token logout idempotent when the token is invalid', async () => {
     tokens.verifyAccessToken.mockResolvedValue(null);
 
-    await createService().logoutByAccessToken('invalid-access-token', 'request-6');
+    await createLogoutUseCase().execute({
+      accessToken: 'invalid-access-token',
+      correlationId: 'request-6',
+    });
 
     expect(repository.revokeRefreshFamilyById).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledOnce();
+  });
+
+  it('prefers the refresh token and emits one completion event on logout', async () => {
+    const refreshToken =
+      '96c948b4-f67a-47a5-a45b-02f03c7ed21f.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+    await createLogoutUseCase().execute({
+      refreshToken,
+      accessToken: 'access-token',
+      correlationId: 'request-7',
+    });
+
+    expect(repository.revokeRefreshFamily).toHaveBeenCalledWith(
+      '96c948b4-f67a-47a5-a45b-02f03c7ed21f',
+      `${refreshToken}-hash`,
+    );
+    expect(tokens.verifyAccessToken).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledOnce();
+    expect(logger.info).toHaveBeenCalledWith(
+      { event: 'auth.logout', result: 'completed', correlationId: 'request-7' },
+      'Logout completed',
+    );
   });
 });

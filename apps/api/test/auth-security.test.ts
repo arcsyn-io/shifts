@@ -6,7 +6,9 @@ import type { AppLogger } from '@arcsyn-shift/observability';
 import { SignJWT } from 'jose';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthTokenService } from '../src/modules/auth/application/auth-token.service.js';
-import type { AuthService } from '../src/modules/auth/application/auth.service.js';
+import type { LoginUseCase } from '../src/modules/auth/application/use-cases/login.use-case.js';
+import type { LogoutUseCase } from '../src/modules/auth/application/use-cases/logout.use-case.js';
+import type { RefreshTokenUseCase } from '../src/modules/auth/application/use-cases/refresh-token.use-case.js';
 import { AuthController } from '../src/modules/auth/presentation/http/auth.controller.js';
 import {
   AuthGuard,
@@ -202,11 +204,13 @@ describe('auth JWT and cookie security', () => {
   });
 
   it('revokes an identifiable refresh on logout even when CSRF is absent', async () => {
-    const authService = {
-      logout: vi.fn().mockResolvedValue(undefined),
-      logoutByAccessToken: vi.fn().mockResolvedValue(undefined),
-    } as unknown as AuthService;
-    const controller = new AuthController(authService, createConfig());
+    const logoutUseCase = { execute: vi.fn().mockResolvedValue(undefined) };
+    const controller = new AuthController(
+      {} as LoginUseCase,
+      {} as RefreshTokenUseCase,
+      logoutUseCase as unknown as LogoutUseCase,
+      createConfig(),
+    );
     const reply = { header: vi.fn() };
 
     await controller.logout(
@@ -217,7 +221,7 @@ describe('auth JWT and cookie security', () => {
       reply as never,
     );
 
-    expect(authService.logout).toHaveBeenCalledWith({
+    expect(logoutUseCase.execute).toHaveBeenCalledWith({
       refreshToken: 'refresh-token',
       correlationId: 'request-logout-refresh',
     });
@@ -228,11 +232,13 @@ describe('auth JWT and cookie security', () => {
   });
 
   it('falls back to a valid access cookie family when logout has no refresh cookie', async () => {
-    const authService = {
-      logout: vi.fn().mockResolvedValue(undefined),
-      logoutByAccessToken: vi.fn().mockResolvedValue(undefined),
-    } as unknown as AuthService;
-    const controller = new AuthController(authService, createConfig());
+    const logoutUseCase = { execute: vi.fn().mockResolvedValue(undefined) };
+    const controller = new AuthController(
+      {} as LoginUseCase,
+      {} as RefreshTokenUseCase,
+      logoutUseCase as unknown as LogoutUseCase,
+      createConfig(),
+    );
     const reply = { header: vi.fn() };
 
     await controller.logout(
@@ -243,11 +249,10 @@ describe('auth JWT and cookie security', () => {
       reply as never,
     );
 
-    expect(authService.logout).not.toHaveBeenCalled();
-    expect(authService.logoutByAccessToken).toHaveBeenCalledWith(
-      'access-token',
-      'request-logout-access',
-    );
+    expect(logoutUseCase.execute).toHaveBeenCalledWith({
+      accessToken: 'access-token',
+      correlationId: 'request-logout-access',
+    });
     expect(reply.header).toHaveBeenCalledWith(
       'set-cookie',
       expect.arrayContaining([expect.stringContaining('arcsyn_access=;')]),
@@ -264,11 +269,12 @@ describe('global auth guard', () => {
     config: AppConfig = createConfig(),
     logger = { warn: vi.fn() } as unknown as AppLogger,
   ) => {
-    const authService = {
+    const tokens = {
       verifyAccessToken: vi.fn().mockResolvedValue(null),
-      csrfMatchesAccess: vi.fn().mockReturnValue(false),
-    } as unknown as AuthService;
-    return new AuthGuard(new Reflector(), authService, config, logger);
+      hashOpaqueToken: vi.fn((value: string) => `${value}-hash`),
+      hashesEqual: vi.fn().mockReturnValue(false),
+    } as unknown as AuthTokenService;
+    return new AuthGuard(new Reflector(), tokens, config, logger);
   };
 
   it('rejects Bearer authentication even on an explicitly public route', async () => {

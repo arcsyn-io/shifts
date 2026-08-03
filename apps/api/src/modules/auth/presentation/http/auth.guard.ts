@@ -11,7 +11,7 @@ import type { AppLogger } from '@arcsyn-shift/observability';
 import { Reflector } from '@nestjs/core';
 import type { FastifyRequest } from 'fastify';
 import { AUTH_CONFIG, AUTH_LOGGER } from '../../auth.tokens.js';
-import { AuthService } from '../../application/auth.service.js';
+import { AuthTokenService } from '../../application/auth-token.service.js';
 import type { VerifiedAccessResult } from '../../application/results/auth-session.result.js';
 import {
   AUTH_PUBLIC_METADATA,
@@ -35,7 +35,7 @@ const JWT_LIKE_PATTERN = /^[A-Za-z0-9_-]{2,2048}\.[A-Za-z0-9_-]{2,4096}\.[A-Za-z
 export class AuthGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
-    @Inject(AuthService) private readonly authService: AuthService,
+    @Inject(AuthTokenService) private readonly tokens: AuthTokenService,
     @Inject(AUTH_CONFIG) private readonly config: AppConfig,
     @Inject(AUTH_LOGGER) private readonly logger: AppLogger,
   ) {}
@@ -71,7 +71,7 @@ export class AuthGuard implements CanActivate {
       this.logRejection('auth.session', 'missing_access', correlationId);
       throw new UnauthorizedException({ code: 'authentication_required' });
     }
-    const access = await this.authService.verifyAccessToken(accessToken);
+    const access = await this.tokens.verifyAccessToken(accessToken);
     if (!access) {
       this.logRejection('auth.session', 'invalid_access', correlationId);
       throw new UnauthorizedException({ code: 'invalid_session' });
@@ -79,7 +79,10 @@ export class AuthGuard implements CanActivate {
 
     if (isMutating) {
       this.assertDoubleSubmitCsrf(csrfToken, csrfHeader, correlationId);
-      if (!csrfToken || !this.authService.csrfMatchesAccess(csrfToken, access)) {
+      if (
+        !csrfToken ||
+        !this.tokens.hashesEqual(this.tokens.hashOpaqueToken(csrfToken), access.csrfHash)
+      ) {
         this.logRejection('auth.csrf', 'session_mismatch', correlationId);
         throw new ForbiddenException({ code: 'invalid_csrf' });
       }

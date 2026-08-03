@@ -21,6 +21,7 @@ const SHARED_ARTIFACT_EXCEPTIONS = new Set([
 const STRICT_ARTIFACT_DIRECTORIES = new Set([
   'application/commands',
   'application/results',
+  'application/use-cases',
   'domain/entities',
   'domain/use-cases',
   'domain/value-objects',
@@ -132,7 +133,7 @@ const ARTIFACT_RULES = [
     name: 'UseCase',
     filePattern: /\.use-case\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['UseCase'],
-    allowedDirectories: ['domain/use-cases'],
+    allowedDirectories: ['application/use-cases', 'domain/use-cases'],
     forbidSubdirectories: true,
     requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'UseCase deve usar <nome-em-kebab-case>.use-case.ts',

@@ -1,0 +1,11 @@
+# Supabase
+.branches
+.temp
+
+# dotenvx
+.env.keys
+.env.local
+.env.*.local
+
+# Chaves JWT locais; gere por ambiente e nunca versione a chave privada.
+signing_keys.json

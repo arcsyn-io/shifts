@@ -1,5 +1,4 @@
 import { PageHeader } from '@arcsyn-io/react';
-import { HealthStatus } from '@/features/health';
 
 export function HomePage() {
   return (
@@ -8,14 +7,12 @@ export function HomePage() {
         <PageHeader>
           <PageHeader.Content>
             <PageHeader.Eyebrow>ArcSyn Shift</PageHeader.Eyebrow>
-            <PageHeader.Title>Project foundation ready.</PageHeader.Title>
+            <PageHeader.Title>Your workspace is ready.</PageHeader.Title>
             <PageHeader.Description>
-              Initial stack configuration is online. Product rules are intentionally not
-              implemented.
+              You are signed in. Shift planning tools will appear here as they become available.
             </PageHeader.Description>
           </PageHeader.Content>
         </PageHeader>
-        <HealthStatus />
       </div>
     </main>
   );

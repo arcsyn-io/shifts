@@ -134,7 +134,13 @@ describe('auth HTTP security boundary', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
-  it('rejects a foreign Origin before refreshing a session', async () => {
+  it.each([
+    ['a foreign Origin', { origin: 'https://evil.example' }],
+    ['absent origin metadata', {}],
+    ['a cross-site request', { 'sec-fetch-site': 'cross-site' }],
+    ['a same-site request', { 'sec-fetch-site': 'same-site' }],
+    ['a browser-external request', { 'sec-fetch-site': 'none' }],
+  ])('rejects %s before refreshing a session', async (_scenario, headers) => {
     const execute = vi
       .fn()
       .mockImplementation((credentials: { allowRefresh?: boolean }) =>
@@ -146,7 +152,7 @@ describe('auth HTTP security boundary', () => {
     await expect(
       controller.session(
         request({
-          origin: 'https://evil.example',
+          ...headers,
           cookie: 'arcsyn_refresh=refresh-token',
         }),
         reply(),
@@ -155,6 +161,28 @@ describe('auth HTTP security boundary', () => {
     expect(execute).toHaveBeenCalledWith({
       refreshToken: 'refresh-token',
       allowRefresh: false,
+    });
+  });
+
+  it.each([
+    ['the configured Origin', { origin: config.webOrigin }],
+    ['Sec-Fetch-Site same-origin without Origin', { 'sec-fetch-site': 'same-origin' }],
+  ])('allows refresh for %s', async (_scenario, headers) => {
+    const execute = vi.fn().mockResolvedValue({ response: { principal } });
+    const controller = createController({ getSession: execute });
+
+    await expect(
+      controller.session(
+        request({
+          ...headers,
+          cookie: 'arcsyn_refresh=refresh-token',
+        }),
+        reply(),
+      ),
+    ).resolves.toEqual({ principal });
+    expect(execute).toHaveBeenCalledWith({
+      refreshToken: 'refresh-token',
+      allowRefresh: true,
     });
   });
 

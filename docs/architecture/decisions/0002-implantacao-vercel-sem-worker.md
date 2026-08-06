@@ -72,3 +72,16 @@ HTTP e MCP e a organização em pnpm workspaces.
 Reavaliar esta decisão quando houver processamento assíncrono, conexões
 persistentes incompatíveis com Functions, exigência de rede privada ou limites
 operacionais que justifiquem outro runtime.
+
+## Emenda operacional de 2026-08-05
+
+A autenticação por cookie tornou o proxy same-origin um requisito de deploy. A
+configuração web migra de `vercel.json` estático para `vercel.ts` programático e
+obtém de `API_PROXY_ORIGIN` o alias HTTPS estável da API em cada environment.
+Isso substitui o uso de `VITE_API_URL` descrito na decisão e no plano de adoção,
+sem alterar a topologia de dois projetos independentes.
+
+O origin é validado durante a avaliação da configuração e um valor ausente ou
+inválido interrompe o deployment. Preview continua sem pareamento automático:
+cada environment deve apontar somente para API, Supabase e banco isolados do
+ambiente de Production.

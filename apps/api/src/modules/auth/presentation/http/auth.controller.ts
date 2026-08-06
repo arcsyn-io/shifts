@@ -152,7 +152,7 @@ export class AuthController {
 
   private hasTrustedSessionOrigin(request: FastifyRequest): boolean {
     if (request.headers.origin) return request.headers.origin === this.config.webOrigin;
-    return request.headers['sec-fetch-site'] !== 'cross-site';
+    return request.headers['sec-fetch-site'] === 'same-origin';
   }
 
   private assertJsonContentType(request: FastifyRequest): void {

@@ -17,7 +17,7 @@ Get-Content -LiteralPath $envFile | ForEach-Object {
 }
 
 Set-Location $root
-docker compose up -d
+pnpm infra:up
 
 Start-Process powershell.exe -ArgumentList @(
   '-NoProfile',

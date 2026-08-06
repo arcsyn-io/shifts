@@ -1,21 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: arcsyn_shift
-      POSTGRES_USER: arcsyn_shift_migration
-      POSTGRES_PASSWORD: arcsyn_shift_migration
-    ports:
-      - '127.0.0.1:5433:5432'
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U arcsyn_shift_migration -d arcsyn_shift']
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   minio:
     image: minio/minio:latest
     command: server /data --console-address ':9001'
@@ -23,8 +6,8 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: miniosecret
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
     volumes:
       - minio-data:/data
 
@@ -37,5 +20,4 @@ services:
     command: -c "until mc alias set local http://minio:9000 minio miniosecret; do sleep 1; done; mc mb --ignore-existing local/arcsyn-shift-local"
 
 volumes:
-  postgres-data:
   minio-data:

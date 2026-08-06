@@ -51,6 +51,12 @@ Use o gerador e o validador descritos em
 
 ## Frontend
 
+- Implemente interfaces com abordagem **mobile first**: comece pelo menor
+  viewport suportado e adicione complexidade progressivamente por breakpoints,
+  sem depender de uma versão desktop reduzida posteriormente.
+- Garanta conteúdo e ações principais sem rolagem horizontal acidental, preserve
+  ordem semântica ao reorganizar layouts e ofereça alvos de toque, espaçamento e
+  feedback adequados para interação por dedos.
 - Não duplique formatos de contratos compartilhados.
 - Inclua estados de carregamento, vazio e erro.
 - Considere acessibilidade, foco e navegação por teclado.

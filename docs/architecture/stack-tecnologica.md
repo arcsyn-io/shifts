@@ -71,12 +71,18 @@ centralizada e validada.
 
 ## Persistência e armazenamento local
 
-- PostgreSQL 16 Alpine é o banco relacional do ambiente local.
+- PostgreSQL 17 da stack local do Supabase é o banco relacional do ambiente
+  local.
+- Supabase CLI 2.111.0 coordena PostgreSQL, Auth, gateway, Studio e email local.
 - Drizzle ORM 0.38 é a camada de acesso e modelagem relacional.
 - Drizzle Kit 0.30 gera e aplica migrações.
 - node-postgres 8 fornece o driver PostgreSQL.
 - MinIO fornece armazenamento de objetos compatível com S3 no ambiente local.
-- Docker Compose coordena PostgreSQL, MinIO e sua inicialização local.
+- Docker Compose coordena MinIO e sua inicialização local.
+
+O Supabase administra seus schemas reservados, incluindo `auth`. Drizzle
+continua como única autoridade das tabelas da aplicação e não deve mapear nem
+migrar tabelas internas do Supabase.
 
 As imagens MinIO ainda usam a tag `latest` no ambiente local. Isso não constitui
 uma versão aprovada para produção. Uma estratégia de produção deve fixar versões

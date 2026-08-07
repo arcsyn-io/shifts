@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { AuthRequestError, login } from '@/features/auth/api/auth';
-import { ArcSynBrand } from '@/features/auth/components/ArcSynBrand';
+import { ArcSynLogo } from '@/features/auth/components/ArcSynLogo';
 import { sessionQueryKey } from '@/features/auth/queries/session';
 
 interface LoginFormProps {
@@ -69,7 +69,7 @@ export function LoginForm({ destination }: LoginFormProps) {
       <Card className="login-card" padding="none">
         <div className="login-card__heading">
           <div className="login-card__brand">
-            <ArcSynBrand />
+            <ArcSynLogo />
           </div>
           <p className="login-card__eyebrow">Welcome back</p>
           <h1>Sign in to Shift</h1>

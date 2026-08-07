@@ -1,9 +1,9 @@
-import { ArcSynBrand } from '@/features/auth/components/ArcSynBrand';
+import { ArcSynLogo } from '@/features/auth/components/ArcSynLogo';
 
 export function LoginHero() {
   return (
     <section className="login-hero" aria-labelledby="login-hero-title">
-      <ArcSynBrand />
+      <ArcSynLogo />
       <div className="login-hero__copy">
         <p className="login-hero__eyebrow">Workforce orchestration</p>
         <h2 id="login-hero-title">Every shift, aligned.</h2>

@@ -102,6 +102,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@arcsyn-io/presentations':
+        specifier: 0.1.0
+        version: 0.1.0
       '@arcsyn-io/react':
         specifier: ^0.1.0
         version: 0.1.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -204,6 +207,9 @@ importers:
   packages/typescript-config: {}
 
 packages:
+
+  '@arcsyn-io/presentations@0.1.0':
+    resolution: {integrity: sha512-JC9muzyJlT9uM4eF2UFW6iXkUAWXv0GNAKOtCsXZ1UWy5QCBGGl3CNstFd5xjrV0iJCPeJfyKBe2m6usE8084A==, tarball: https://npm.pkg.github.com/download/@arcsyn-io/presentations/0.1.0/571621d1f841c57b703e79a2c4dda9b238b36fe3}
 
   '@arcsyn-io/react@0.1.0':
     resolution: {integrity: sha512-nxEUe5Zgk6Fm+dKp1RyDEtz7dBC5Pff7tZmMV73pnLIdrlfCJd9c/3sTCOCv3ZOHLcHHu2pD4hInigCOnLXVMA==, tarball: https://npm.pkg.github.com/download/@arcsyn-io/react/0.1.0/a3dc7d2373019baba0dd6bebc46325a507f7fe53}
@@ -3074,6 +3080,10 @@ packages:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
+
+  '@arcsyn-io/presentations@0.1.0':
+    dependencies:
+      '@arcsyn-io/tokens': 0.1.0
 
   '@arcsyn-io/react@0.1.0(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:

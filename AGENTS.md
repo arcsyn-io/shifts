@@ -34,22 +34,52 @@ necessária.
 
 ## Delegação
 
-Antes de implementar uma funcionalidade não trivial, delegue o levantamento ao
-agente `requirements_architect` definido em
-`.codex/agents/requirements-architect.toml` e siga o fluxo de especificações.
+Use delegação somente quando ela reduzir risco ou permitir trabalho realmente
+independente. Não delegue apenas pelo fato de a tarefa pertencer a uma área
+especializada e não repita entre agentes o mesmo levantamento, inspeção ou
+validação.
 
-Delegue ao `security_reviewer` mudanças que envolvam autenticação, autorização,
-dados sensíveis, entradas externas, integrações, dependências, infraestrutura ou
-limites de confiança.
+### Classificação da mudança
 
-Delegue ao `qa_engineer` a criação de cenários para funcionalidades não triviais
-e a validação dos critérios de aceite após a implementação.
+Considere uma mudança **pequena e local** quando todos os itens abaixo forem
+verdadeiros:
 
-Delegue ao `frontend_developer` tarefas aprovadas e restritas a `apps/web` após
-a definição dos contratos compartilhados.
+- o comportamento esperado e a validação estão claros;
+- a alteração está restrita a uma aplicação ou pacote e não muda contratos
+  compartilhados;
+- não cria nem altera regra de negócio, esquema de dados, integração,
+  dependência, autenticação, autorização ou tratamento de dados sensíveis;
+- é fácil de reverter e não exige decisão arquitetural ou migração.
 
-Delegue ao `backend_developer` tarefas aprovadas de API e persistência, com
-propriedade explícita para qualquer pacote compartilhado afetado.
+Nesse caso, o agente principal pode inspecionar, implementar e validar
+diretamente, sem criar especificação nem delegar. Correções localizadas,
+refatorações sem mudança de comportamento, ajustes visuais e manutenção de
+testes normalmente seguem esse fluxo rápido.
 
-Delegue ao `devops_engineer` tarefas aprovadas de CI/CD, contêineres,
-infraestrutura, implantação e confiabilidade operacional.
+Considere uma mudança **não trivial** quando qualquer item acima não for
+verdadeiro ou quando houver ambiguidade material. Antes de implementá-la,
+delegue o levantamento ao `requirements_architect`, definido em
+`.codex/agents/requirements-architect.toml`, e siga o fluxo de especificações.
+
+### Quando envolver agentes especializados
+
+- Delegue ao `security_reviewer` somente mudanças que afetem autenticação,
+  autorização, dados sensíveis, entradas externas não confiáveis, integrações,
+  dependências, infraestrutura ou limites de confiança. Uma revisão documental
+  ou alteração local sem impacto nesses limites não exige essa delegação.
+- Delegue ao `qa_engineer` a definição antecipada de cenários quando critérios
+  de aceite, regras de negócio ou riscos forem não triviais. Para mudanças
+  pequenas, o agente principal pode executar as verificações proporcionais. Use
+  o `qa_engineer` após a implementação quando for necessária validação
+  independente dos critérios de aceite.
+- Delegue ao `frontend_developer`, `backend_developer` ou `devops_engineer`
+  somente uma implementação aprovada que tenha escopo e propriedade de arquivos
+  claros. O agente principal pode executar mudanças pequenas e locais nessas
+  áreas.
+- Paralelize apenas subtarefas independentes, com responsabilidades e arquivos
+  distintos. Quando uma etapa depender da conclusão de outra, prefira execução
+  sequencial pelo menor número de agentes necessário.
+
+Na dúvida entre os fluxos, use o fluxo rápido se a hipótese for conservadora,
+local e facilmente reversível. Escale a delegação quando a incerteza puder
+alterar comportamento, segurança, contrato público, dados ou arquitetura.

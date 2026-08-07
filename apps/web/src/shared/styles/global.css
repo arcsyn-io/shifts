@@ -94,25 +94,19 @@ body {
   padding: var(--arcsyn-spacing-4);
 }
 
-.arcsyn-brand {
-  align-items: center;
-  color: var(--arcsyn-color-foreground);
-  display: inline-flex;
-  font-size: var(--arcsyn-font-size-xl);
-  font-weight: 600;
-  gap: var(--arcsyn-spacing-2);
-  letter-spacing: -0.03em;
+.arcsyn-logo {
+  block-size: 2.75rem;
+  display: block;
+  inline-size: 9.25rem;
+  overflow: hidden;
 }
 
-.arcsyn-brand__mark {
-  block-size: 2rem;
-  fill: none;
-  flex: none;
-  inline-size: 2rem;
-  stroke: var(--arcsyn-color-primary);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
+.arcsyn-logo__image {
+  block-size: auto;
+  display: block;
+  inline-size: 10.5rem;
+  max-inline-size: none;
+  transform: translateY(-1.625rem);
 }
 
 .login-card {
@@ -264,7 +258,6 @@ body {
     padding: clamp(2rem, 5vw, 5rem);
   }
 
-  .login-hero > .arcsyn-brand,
   .login-hero__footer,
   .login-hero__visual {
     display: block;

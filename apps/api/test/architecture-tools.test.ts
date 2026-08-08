@@ -202,7 +202,9 @@ describe('checkArchitecture', () => {
     );
 
     expect(await checkArchitecture({ sourceRoot })).toEqual([
-      expect.stringContaining('Command modular deve ficar em src/modules/<modulo>/application/commands'),
+      expect.stringContaining(
+        'Command modular deve ficar em src/modules/<modulo>/application/commands',
+      ),
     ]);
   });
 
@@ -293,16 +295,16 @@ describe('checkArchitecture', () => {
     },
   );
 
-  it.each([
-    'application/commands/internal/foo.ts',
-    'presentation/http/dto/internal/foo.ts',
-  ])('reports a generic file nested below a reserved directory: %s', async (relativePath) => {
-    const sourceRoot = await createTemporarySource();
-    await createModule('shifts', { sourceRoot });
-    await writeSource(sourceRoot, `modules/shifts/${relativePath}`, 'export class Foo {}\n');
+  it.each(['application/commands/internal/foo.ts', 'presentation/http/dto/internal/foo.ts'])(
+    'reports a generic file nested below a reserved directory: %s',
+    async (relativePath) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('shifts', { sourceRoot });
+      await writeSource(sourceRoot, `modules/shifts/${relativePath}`, 'export class Foo {}\n');
 
-    expect(await checkArchitecture({ sourceRoot })).not.toEqual([]);
-  });
+      expect(await checkArchitecture({ sourceRoot })).not.toEqual([]);
+    },
+  );
 
   it.each([
     {
@@ -359,6 +361,24 @@ describe('checkArchitecture', () => {
     ]);
   });
 
+  it('allows an explicit public module entry while preserving internal boundaries', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('first', { sourceRoot });
+    await createModule('second', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/second/index.ts',
+      "export { SecondModule } from './second.module.js';\n",
+    );
+    await writeSource(
+      sourceRoot,
+      'modules/first/application/valid.service.ts',
+      "import { SecondModule } from '../../second/index.js';\nexport class ValidService {}\n",
+    );
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
   it('reports a DTO class whose file does not declare request or response', async () => {
     const sourceRoot = await createTemporarySource();
     await createModule('shifts', { sourceRoot });
@@ -375,7 +395,11 @@ describe('checkArchitecture', () => {
 
   it.each([
     ['application/commands/create-shift.ts', 'export class CreateShiftCommand {}\n', 'Command'],
-    ['application/results/createShift.result.ts', 'export type CreateShiftResult = {};\n', 'Result'],
+    [
+      'application/results/createShift.result.ts',
+      'export type CreateShiftResult = {};\n',
+      'Result',
+    ],
     ['presentation/http/mappers/shift.ts', 'export class ShiftMapper {}\n', 'Mapper'],
     ['domain/entities/shift.ts', 'export class ShiftEntity {}\n', 'Entity'],
   ] as const)(
@@ -393,7 +417,11 @@ describe('checkArchitecture', () => {
 
   it.each([
     ['application/commands/shift.service.ts', 'export class ShiftService {}\n', 'Service'],
-    ['presentation/http/dto/shift.controller.ts', 'export class ShiftController {}\n', 'Controller'],
+    [
+      'presentation/http/dto/shift.controller.ts',
+      'export class ShiftController {}\n',
+      'Controller',
+    ],
   ] as const)(
     'reports an architectural class nested outside its exact directory: %s',
     async (relativePath, source, artifactName) => {

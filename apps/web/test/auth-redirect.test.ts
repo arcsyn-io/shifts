@@ -7,6 +7,9 @@ describe('authentication redirects', () => {
       '/login?next=%2F%3Fview%3Dweek%23today',
     );
     expect(resolveSafeRedirect('?next=%2F%3Fview%3Dweek%23today')).toBe('/?view=week#today');
+    expect(resolveSafeRedirect('?next=%2Forganizations%2Facme-ops%3Fview%3Dmembers%23access')).toBe(
+      '/organizations/acme-ops?view=members#access',
+    );
   });
 
   it.each([
@@ -15,6 +18,9 @@ describe('authentication redirects', () => {
     '/\\evil.example/path',
     '/status',
     '/unknown',
+    '/organizations/INVALID',
+    '/organizations/ab',
+    '/organizations/acme/secret',
   ])('falls back to root for the unrecognized destination %s', (destination) => {
     expect(resolveSafeRedirect(`?next=${encodeURIComponent(destination)}`)).toBe('/');
   });

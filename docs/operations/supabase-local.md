@@ -59,7 +59,10 @@ removê-la ou recriá-la.
 ## Endpoints
 
 - API, Auth e discovery: `http://127.0.0.1:54321`
-- PostgreSQL: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+- PostgreSQL da aplicação:
+  `postgresql://arcsyn_shift_app_local:arcsyn_shift_local@127.0.0.1:54322/postgres`
+- PostgreSQL de migrações:
+  `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 - Studio: `http://127.0.0.1:54323`
 - emails locais: `http://127.0.0.1:54324`
 - web: `http://localhost:5173`
@@ -67,6 +70,13 @@ removê-la ou recriá-la.
 
 As credenciais acima pertencem exclusivamente à stack local. Nunca reutilize
 esses valores em Preview, Production ou um projeto Supabase remoto.
+
+O arquivo `supabase/roles.sql` provisiona o login local sem privilégios e o faz
+membro de `arcsyn_shift_runtime`. `infra:up` e `infra:reset` executam o script
+idempotente `db:roles:local`, restrito ao host e à porta do Supabase local. A
+API usa esse login; somente migrações usam a credencial administrativa. Em
+ambientes remotos, provisione uma senha forte no secret store e conceda a mesma
+role de grupo, sem copiar a senha local.
 
 ## Auth e OAuth
 

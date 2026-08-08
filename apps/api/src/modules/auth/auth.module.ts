@@ -12,6 +12,7 @@ import { GetSessionUseCase } from './domain/use-cases/get-session.use-case.js';
 import { LoginUseCase } from './domain/use-cases/login.use-case.js';
 import { LogoutUseCase } from './domain/use-cases/logout.use-case.js';
 import { AuthController } from './presentation/http/auth.controller.js';
+import { BffMutationGuard, BffSessionGuard } from './presentation/http/guards/bff-session.guard.js';
 import { AUTH_FETCH, AUTH_REPOSITORY, SUPABASE_AUTH_CONFIG } from './repository/auth.repository.js';
 import { SupabaseAuthRepository } from './repository/supabase-auth.repository.js';
 
@@ -37,6 +38,8 @@ function loadAuthConfig(): AuthConfig {
     { provide: SUPABASE_AUTH_CONFIG, useFactory: loadAuthConfig },
     { provide: AUTH_FETCH, useValue: globalThis.fetch.bind(globalThis) },
     { provide: AUTH_REPOSITORY, useClass: SupabaseAuthRepository },
+    BffSessionGuard,
+    BffMutationGuard,
     {
       provide: LOGIN_USE_CASE,
       useFactory: (provider: AuthProviderPort) => new LoginUseCase(provider),
@@ -53,5 +56,6 @@ function loadAuthConfig(): AuthConfig {
       inject: [AUTH_REPOSITORY],
     },
   ],
+  exports: [AUTH_CONFIG, GET_SESSION_USE_CASE, BffSessionGuard, BffMutationGuard],
 })
 export class AuthModule {}

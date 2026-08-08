@@ -35,8 +35,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Command'],
     allowedDirectories: ['application/commands'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Command deve usar <nome-em-kebab-case>.command.ts',
   },
   {
@@ -45,8 +44,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Result'],
     allowedDirectories: ['application/results'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Result deve usar <nome-em-kebab-case>.result.ts',
   },
   {
@@ -59,8 +57,7 @@ const ARTIFACT_RULES = [
       'repository/mappers',
     ],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Mapper deve usar <nome-em-kebab-case>.mapper.ts',
   },
   {
@@ -68,8 +65,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.controller\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Controller'],
     allowedDirectories: ['presentation/http'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Controller deve usar <nome-em-kebab-case>.controller.ts',
   },
   {
@@ -77,8 +73,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.tool\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['McpTool'],
     allowedDirectories: ['presentation/mcp'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'McpTool deve usar <nome-em-kebab-case>-mcp.tool.ts',
   },
   {
@@ -86,8 +81,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.service\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Service'],
     allowedDirectories: ['application'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Service deve usar <nome-em-kebab-case>.service.ts',
   },
   {
@@ -96,8 +90,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['UseCase'],
     allowedDirectories: ['domain/use-cases'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'UseCase deve usar <nome-em-kebab-case>.use-case.ts',
   },
   {
@@ -106,8 +99,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Entity'],
     allowedDirectories: ['domain/entities'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Entity deve usar <nome-em-kebab-case>.entity.ts',
   },
   {
@@ -116,8 +108,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['ValueObject'],
     allowedDirectories: ['domain/value-objects'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'ValueObject deve usar <nome-em-kebab-case>.value-object.ts',
   },
   {
@@ -125,8 +116,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.repository\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Repository'],
     allowedDirectories: ['repository'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Repository deve usar <nome-em-kebab-case>.repository.ts',
   },
 ];
@@ -293,6 +283,8 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   const importedModule = resolved ? moduleFromPath(resolved) : null;
 
   if (importedModule && importedModule !== moduleName) {
+    const isPublicModuleEntry = resolved === `modules/${importedModule}/index.js`;
+    if (isPublicModuleEntry) return errors;
     errors.push(
       `${relativeFile}: nao pode importar caminho interno do modulo "${importedModule}" (${specifier}).`,
     );

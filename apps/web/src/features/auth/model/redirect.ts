@@ -1,5 +1,12 @@
+import { organizationSlugSchema } from '@arcsyn-shift/contracts';
+
 const DEFAULT_DESTINATION = '/';
-const RECOGNIZED_PROTECTED_PATHS = new Set(['/']);
+
+function isRecognizedProtectedPath(pathname: string): boolean {
+  if (pathname === '/') return true;
+  const match = /^\/organizations\/([^/]+)$/.exec(pathname);
+  return match ? organizationSlugSchema.safeParse(match[1]).success : false;
+}
 
 export function resolveSafeRedirect(search: string): string {
   const candidate = new URLSearchParams(search).get('next');
@@ -13,7 +20,7 @@ export function resolveSafeRedirect(search: string): string {
   try {
     const destination = new URL(candidate, 'https://app.arcsyn.invalid');
 
-    if (!RECOGNIZED_PROTECTED_PATHS.has(destination.pathname)) {
+    if (!isRecognizedProtectedPath(destination.pathname)) {
       return DEFAULT_DESTINATION;
     }
 

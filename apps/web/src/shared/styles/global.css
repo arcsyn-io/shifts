@@ -34,14 +34,14 @@ body {
 .arcsyn-sidebar--mobile {
   background:
     radial-gradient(
-      circle at 12% 100%,
+      circle at 12% 0%,
       color-mix(in srgb, var(--arcsyn-color-primary), transparent 88%),
       transparent 18rem
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--arcsyn-color-surface), var(--arcsyn-color-background) 18%) 0%,
-      color-mix(in srgb, var(--arcsyn-color-background), var(--arcsyn-color-surface) 12%) 100%
+      color-mix(in srgb, var(--arcsyn-color-background), var(--arcsyn-color-surface) 12%) 0%,
+      color-mix(in srgb, var(--arcsyn-color-surface), var(--arcsyn-color-background) 18%) 100%
     );
 }
 

@@ -1,4 +1,5 @@
 import { Alert, Button, Card } from '@arcsyn-io/react';
+import { useTranslation } from 'react-i18next';
 
 interface SessionUnavailableProps {
   onRetry: () => void;
@@ -6,16 +7,18 @@ interface SessionUnavailableProps {
 }
 
 export function SessionUnavailable({ onRetry, isRetrying }: SessionUnavailableProps) {
+  const { t } = useTranslation(['auth', 'common']);
+
   return (
-    <main className="session-state" data-arcsyn-theme="dark">
+    <main className="session-state">
       <Card className="session-state__card">
         <Alert
           variant="danger"
-          title="We couldn't verify your session"
-          description="The authentication service is temporarily unavailable. Your session has not been changed."
+          title={t('unavailable.title', { ns: 'auth' })}
+          description={t('unavailable.description', { ns: 'auth' })}
         />
         <Button type="button" onClick={onRetry} loading={isRetrying}>
-          Try again
+          {t('actions.retry', { ns: 'common' })}
         </Button>
       </Card>
     </main>

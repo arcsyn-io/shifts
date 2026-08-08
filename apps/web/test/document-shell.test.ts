@@ -8,7 +8,7 @@ describe('document shell', () => {
     const document = await readFile(indexHtmlUrl, 'utf8');
 
     expect(document).toMatch(/^<!doctype html>/i);
-    expect(document).toMatch(/<html lang="en">/i);
+    expect(document).toMatch(/<html lang="pt-BR" data-arcsyn-theme="dark">/i);
     expect(document).toMatch(/<meta charset="UTF-8"\s*\/?>/i);
     expect(document).toMatch(
       /<meta name="viewport" content="width=device-width, initial-scale=1"\s*\/?>/i,

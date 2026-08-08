@@ -1,18 +1,18 @@
 import { PageHeader } from '@arcsyn-io/react';
+import { useTranslation } from 'react-i18next';
 import { HealthStatus } from '@/features/health';
 
 export function StatusPage() {
+  const { t } = useTranslation('status');
+
   return (
-    <main className="home-page" data-arcsyn-theme="dark">
+    <main className="home-page">
       <div className="home-page__content">
         <PageHeader>
           <PageHeader.Content>
-            <PageHeader.Eyebrow>ArcSyn Shift</PageHeader.Eyebrow>
-            <PageHeader.Title>Project foundation ready.</PageHeader.Title>
-            <PageHeader.Description>
-              Initial stack configuration is online. Product rules are intentionally not
-              implemented.
-            </PageHeader.Description>
+            <PageHeader.Eyebrow>{t('header.eyebrow')}</PageHeader.Eyebrow>
+            <PageHeader.Title>{t('header.title')}</PageHeader.Title>
+            <PageHeader.Description>{t('header.description')}</PageHeader.Description>
           </PageHeader.Content>
         </PageHeader>
         <HealthStatus />

@@ -3,6 +3,7 @@ import { Alert, Button, Card, Field, Input } from '@arcsyn-io/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AuthRequestError, login } from '@/features/auth/api/auth';
 import { ArcSynLogo } from '@/features/auth/components/ArcSynLogo';
@@ -13,6 +14,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ destination }: LoginFormProps) {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const errorRef = useRef<HTMLDivElement>(null);
@@ -47,7 +49,7 @@ export function LoginForm({ destination }: LoginFormProps) {
         if (field === 'email' || field === 'password') {
           firstInvalidField ??= field;
           setError(field, {
-            message: field === 'email' ? 'Enter a valid email address.' : 'Enter your password.',
+            type: 'validate',
           });
         }
       }
@@ -61,8 +63,8 @@ export function LoginForm({ destination }: LoginFormProps) {
 
   const loginError =
     loginMutation.error instanceof AuthRequestError && loginMutation.error.status === 401
-      ? 'Email or password is incorrect. Please try again.'
-      : "We couldn't sign you in. Check your connection and try again.";
+      ? t('form.invalidCredentials')
+      : t('form.connectionError');
 
   return (
     <div className="login-panel">
@@ -71,20 +73,25 @@ export function LoginForm({ destination }: LoginFormProps) {
           <div className="login-card__brand">
             <ArcSynLogo />
           </div>
-          <p className="login-card__eyebrow">Welcome back</p>
-          <h1>Sign in to Shift</h1>
-          <p>Enter your ArcSyn account details to continue.</p>
+          <p className="login-card__eyebrow">{t('form.eyebrow')}</p>
+          <h1>{t('form.title')}</h1>
+          <p>{t('form.description')}</p>
         </div>
 
         {loginMutation.isError ? (
           <div ref={errorRef} tabIndex={-1} className="login-card__alert">
-            <Alert role="alert" variant="danger" title="Sign-in failed" description={loginError} />
+            <Alert
+              role="alert"
+              variant="danger"
+              title={t('form.alertTitle')}
+              description={loginError}
+            />
           </div>
         ) : null}
 
         <form className="login-form" onSubmit={submit} noValidate>
           <Field.Root>
-            <Field.Label htmlFor="email">Email address</Field.Label>
+            <Field.Label htmlFor="email">{t('form.emailLabel')}</Field.Label>
             <Input
               {...register('email')}
               id="email"
@@ -100,12 +107,12 @@ export function LoginForm({ destination }: LoginFormProps) {
               disabled={loginMutation.isPending}
             />
             {errors.email ? (
-              <Field.Error id="email-error">{errors.email.message}</Field.Error>
+              <Field.Error id="email-error">{t('form.invalidEmail')}</Field.Error>
             ) : null}
           </Field.Root>
 
           <Field.Root>
-            <Field.Label htmlFor="password">Password</Field.Label>
+            <Field.Label htmlFor="password">{t('form.passwordLabel')}</Field.Label>
             <Input
               {...register('password')}
               id="password"
@@ -118,7 +125,7 @@ export function LoginForm({ destination }: LoginFormProps) {
               disabled={loginMutation.isPending}
             />
             {errors.password ? (
-              <Field.Error id="password-error">{errors.password.message}</Field.Error>
+              <Field.Error id="password-error">{t('form.requiredPassword')}</Field.Error>
             ) : null}
           </Field.Root>
 
@@ -128,15 +135,13 @@ export function LoginForm({ destination }: LoginFormProps) {
             size="lg"
             loading={loginMutation.isPending}
           >
-            Sign in
+            {t('form.submit')}
           </Button>
         </form>
 
-        <p className="login-card__support">
-          Need help accessing your account? Contact your ArcSyn administrator.
-        </p>
+        <p className="login-card__support">{t('form.support')}</p>
       </Card>
-      <p className="login-panel__footer">Secure access powered by ArcSyn</p>
+      <p className="login-panel__footer">{t('form.footer')}</p>
     </div>
   );
 }

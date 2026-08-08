@@ -22,7 +22,7 @@ export function LoginScreen() {
   }
 
   return (
-    <main className="login-page" data-arcsyn-theme="dark">
+    <main className="login-page">
       <LoginForm destination={destination} />
       <LoginHero />
     </main>

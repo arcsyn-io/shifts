@@ -1,16 +1,16 @@
+import { useTranslation } from 'react-i18next';
 import { ArcSynLogo } from '@/features/auth/components/ArcSynLogo';
 
 export function LoginHero() {
+  const { t } = useTranslation('auth');
+
   return (
     <section className="login-hero" aria-labelledby="login-hero-title">
       <ArcSynLogo />
       <div className="login-hero__copy">
-        <p className="login-hero__eyebrow">Workforce orchestration</p>
-        <h2 id="login-hero-title">Every shift, aligned.</h2>
-        <p>
-          One focused workspace to coordinate people, schedules, and the work that keeps teams
-          moving.
-        </p>
+        <p className="login-hero__eyebrow">{t('hero.eyebrow')}</p>
+        <h2 id="login-hero-title">{t('hero.title')}</h2>
+        <p>{t('hero.description')}</p>
       </div>
       <div className="login-hero__visual" aria-hidden="true">
         <svg viewBox="0 0 720 430" preserveAspectRatio="xMidYMid slice">
@@ -36,7 +36,7 @@ export function LoginHero() {
           <path className="login-hero__glow" d="M1 429 267 164 408 282 688 0h32v430Z" />
         </svg>
       </div>
-      <p className="login-hero__footer">Designed for calm operations at any scale.</p>
+      <p className="login-hero__footer">{t('hero.footer')}</p>
     </section>
   );
 }

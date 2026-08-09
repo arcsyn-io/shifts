@@ -379,10 +379,9 @@ export class DrizzleOrganizationsRepository implements OrganizationsRepository {
 function mapDatabaseError(error: unknown): OrganizationRepositoryError {
   const code = getErrorCode(error);
   if (code === '23505' || code === '23514' || code === '23P01') {
-    return new OrganizationRepositoryError('conflict');
+    return new OrganizationRepositoryError('conflict', { cause: error });
   }
-  if (code === '42501') return new OrganizationRepositoryError('forbidden');
-  return new OrganizationRepositoryError('unavailable');
+  return new OrganizationRepositoryError('unavailable', { cause: error });
 }
 
 function getErrorCode(error: unknown): string | undefined {

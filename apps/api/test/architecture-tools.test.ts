@@ -104,8 +104,10 @@ describe('checkArchitecture', () => {
       sourceRoot,
       'modules/health/presentation/mcp/health-mcp.tool.ts',
       "import type { McpTool } from '../../../../infrastructure/mcp/mcp-tool.js';\n" +
+        "import type { McpErrorHandler } from '../../../../infrastructure/mcp/mcp-error-handler.js';\n" +
         "import { HealthService } from '../../application/health.service.js';\n" +
-        'export class HealthTool implements McpTool {}\n',
+        'export class HealthTool implements McpTool {}\n' +
+        'export class HealthErrorHandler implements McpErrorHandler {}\n',
     );
     await writeSource(
       sourceRoot,
@@ -328,7 +330,7 @@ describe('checkArchitecture', () => {
     ]);
   });
 
-  it('accepts the shared MCP controller and tool contract outside modules', async () => {
+  it('accepts the shared MCP controller, tool and error contracts outside modules', async () => {
     const sourceRoot = await createTemporarySource();
     await createModule('health', { sourceRoot });
     await writeSource(
@@ -340,6 +342,11 @@ describe('checkArchitecture', () => {
       sourceRoot,
       'infrastructure/mcp/mcp-tool.ts',
       'export interface McpTool {}\n',
+    );
+    await writeSource(
+      sourceRoot,
+      'infrastructure/mcp/mcp-error-handler.ts',
+      'export interface McpErrorHandler {}\n',
     );
 
     await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);

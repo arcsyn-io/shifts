@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
-import { McpServer } from './mcp-server.js';
+import { McpProtocolError, McpServer } from './mcp-server.js';
 
 @Controller('mcp')
 export class McpController {
@@ -11,12 +11,31 @@ export class McpController {
   }
 
   @Post()
-  call(@Body() body: { method?: string; params?: { name?: string } }) {
+  async call(@Body() body: { method?: string; params?: { name?: string } }) {
     if (body.method === 'tools/list') return this.server.listTools();
-    if (body.method === 'tools/call' && body.params?.name)
-      return {
-        content: [{ type: 'text', text: JSON.stringify(this.server.callTool(body.params.name)) }],
-      };
+    if (body.method === 'tools/call') {
+      if (!body.params?.name) {
+        return { error: { code: -32602, message: 'Invalid params' } };
+      }
+      try {
+        const result = await this.server.callTool(body.params.name);
+        if (isMcpToolErrorOutcome(result)) return result;
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result) }],
+        };
+      } catch (error) {
+        if (error instanceof McpProtocolError) {
+          return { error: { code: error.code, message: error.message } };
+        }
+        return { error: { code: -32603, message: 'Internal error' } };
+      }
+    }
     return { error: { code: -32601, message: 'Unsupported MCP method' } };
   }
+}
+
+function isMcpToolErrorOutcome(value: unknown): value is { isError: true } {
+  return (
+    typeof value === 'object' && value !== null && 'isError' in value && value.isError === true
+  );
 }

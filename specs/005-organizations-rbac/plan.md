@@ -11,6 +11,8 @@
 5. Criar feature web para organizações, home, convites e rota por slug.
 6. Adicionar testes de contratos, domínio, autorização, RLS, navegação e UX.
 7. Executar verificações completas do monorepo e revisar o SQL gerado.
+8. Centralizar o tratamento de erros na apresentação HTTP e no dispatcher MCP,
+   mantendo a tradução fora da transação e sem habilitar tools de organizations.
 
 ## Fronteiras
 

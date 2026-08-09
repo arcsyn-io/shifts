@@ -270,27 +270,34 @@ describe('OrganizationsService', () => {
     expect(repository.lockOrganization).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ['conflict', 'conflict'],
-    ['forbidden', 'forbidden'],
-    ['unavailable', 'unavailable'],
-  ] as const)(
-    'preserves repository %s error translation',
-    async (repositoryError, organizationsError) => {
-      const repository = createRepository({
-        createOrganization: vi
-          .fn()
-          .mockRejectedValue(new OrganizationRepositoryError(repositoryError)),
-      });
-      const harness = createHarness(repository);
+  it('translates an expected repository conflict and preserves its cause', async () => {
+    const repositoryError = new OrganizationRepositoryError('conflict');
+    const repository = createRepository({
+      createOrganization: vi.fn().mockRejectedValue(repositoryError),
+    });
+    const harness = createHarness(repository);
 
-      await expect(
-        harness.run((service) =>
-          service.create({ name: organization.name, slug: organization.slug }),
-        ),
-      ).rejects.toEqual(
-        expect.objectContaining<Partial<OrganizationsError>>({ kind: organizationsError }),
-      );
-    },
-  );
+    const failure = harness.run((service) =>
+      service.create({ name: organization.name, slug: organization.slug }),
+    );
+
+    await expect(failure).rejects.toEqual(
+      expect.objectContaining<Partial<OrganizationsError>>({ kind: 'conflict' }),
+    );
+    await expect(failure).rejects.toHaveProperty('cause', repositoryError);
+  });
+
+  it('keeps a technical repository error intact for the presentation boundary', async () => {
+    const repositoryError = new OrganizationRepositoryError('unavailable');
+    const repository = createRepository({
+      createOrganization: vi.fn().mockRejectedValue(repositoryError),
+    });
+    const harness = createHarness(repository);
+
+    await expect(
+      harness.run((service) =>
+        service.create({ name: organization.name, slug: organization.slug }),
+      ),
+    ).rejects.toBe(repositoryError);
+  });
 });

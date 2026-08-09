@@ -89,6 +89,9 @@ menos um `owner`; o último owner não pode ser rebaixado nem revogado.
 - RBAC é validado na aplicação e RLS atua como segunda camada;
 - logs não incluem tokens, conteúdo sensível de convite nem email completo;
 - respostas distinguem autenticação, autorização, validação e indisponibilidade;
+- services lançam erros semânticos sem conhecer HTTP ou MCP; cada adaptador de
+  apresentação traduz esses erros e sanitiza falhas técnicas na própria
+  fronteira;
 - frontend oferece estados de loading, vazio, erro e acesso negado, mobile first
   e acessível por teclado.
 
@@ -114,6 +117,13 @@ menos um `owner`; o último owner não pode ser rebaixado nem revogado.
   organização.
 - **AC-013:** a home representa separadamente organizações, convites pendentes,
   estados vazios, falha e retry.
+- **AC-014:** controllers HTTP delegam diretamente aos services, e um filtro do
+  módulo preserva os status, códigos e mensagens públicas de organizations.
+- **AC-015:** exceções semânticas ou técnicas continuam propagando até o limite
+  transacional antes de serem convertidas em resposta, garantindo rollback.
+- **AC-016:** o dispatcher MCP captura falhas síncronas e assíncronas; falhas de
+  ferramenta usam `isError: true`, enquanto falhas de protocolo usam erro
+  JSON-RPC, sempre sem detalhes internos.
 
 ## Contratos HTTP
 
@@ -140,5 +150,7 @@ body. IDs, slugs, emails e payloads são validados pelos schemas compartilhados.
 - contexto de usuário/organização permanecer na conexão do pool;
 - corrida entre aceite, mudança de papel e revogação;
 - enumeração por slug, UUID ou email;
+- registro futuro de tools MCP tenant-specific antes de existir autenticação e
+  autorização próprias do resource server;
 - cache frontend preservar acesso revogado;
 - último owner ser removido por operações concorrentes.

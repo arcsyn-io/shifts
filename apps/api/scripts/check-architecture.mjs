@@ -16,6 +16,7 @@ const IMPORT_PATTERN =
   /(?:import|export)\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|require\s*\(\s*["']([^"']+)["']\s*\)/g;
 const SHARED_ARTIFACT_EXCEPTIONS = new Set([
   'infrastructure/mcp/mcp.controller.ts',
+  'infrastructure/mcp/mcp-error-handler.ts',
   'infrastructure/mcp/mcp-tool.ts',
 ]);
 const APPLICATION_INFRASTRUCTURE_IMPORTS = new Set([
@@ -344,6 +345,7 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
     resolved && importedModule === moduleName ? layerFromPath(resolved, moduleName) : null;
   const isApprovedPresentationInfrastructure =
     resolved === 'infrastructure/mcp/mcp-tool.js' ||
+    resolved === 'infrastructure/mcp/mcp-error-handler.js' ||
     (resolved === 'infrastructure/context/application-context.js' &&
       relativeFile === AUTH_CONTEXT_ADAPTER);
 
@@ -425,7 +427,6 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
       `${relativeFile}: repository so pode depender de domain dentro do modulo (${specifier}).`,
     );
   }
-
 
   if (
     layer === 'repository' &&

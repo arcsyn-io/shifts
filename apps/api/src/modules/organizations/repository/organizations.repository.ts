@@ -6,11 +6,14 @@ import type {
   OrganizationMemberEntity,
 } from '../domain/entities/organization.entity.js';
 
-export type OrganizationRepositoryErrorKind = 'conflict' | 'forbidden' | 'unavailable';
+export type OrganizationRepositoryErrorKind = 'conflict' | 'unavailable';
 
 export class OrganizationRepositoryError extends Error {
-  constructor(readonly kind: OrganizationRepositoryErrorKind) {
-    super(kind);
+  constructor(
+    readonly kind: OrganizationRepositoryErrorKind,
+    options?: ErrorOptions,
+  ) {
+    super(kind, options);
     this.name = 'OrganizationRepositoryError';
   }
 }

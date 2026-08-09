@@ -24,4 +24,23 @@ describe('DrizzleOrganizationsRepository transaction boundary', () => {
       );
     });
   });
+
+  it('classifies a technical database permission failure as unavailable and preserves its cause', async () => {
+    const databaseError = { code: '42501', detail: 'canary-private-detail' };
+    const manager = {
+      getTransaction: () => ({
+        execute: () => {
+          throw databaseError;
+        },
+      }),
+    } as unknown as TransactionManager;
+    const repository = new DrizzleOrganizationsRepository(manager);
+
+    const failure = repository.listOrganizations();
+
+    await expect(failure).rejects.toEqual(
+      expect.objectContaining<Partial<OrganizationRepositoryError>>({ kind: 'unavailable' }),
+    );
+    await expect(failure).rejects.toHaveProperty('cause', databaseError);
+  });
 });

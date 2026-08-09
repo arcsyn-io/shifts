@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   Post,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -30,10 +31,8 @@ import {
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BffMutationGuard, BffSessionGuard, RequireBffJsonBody } from '../../../auth/index.js';
 import { OrganizationsService } from '../../application/organizations.service.js';
-import {
-  mapOrganizationsErrors,
-  OrganizationValidationPipe,
-} from './helpers/organizations-http.js';
+import { OrganizationValidationPipe } from './helpers/organizations-http.js';
+import { OrganizationsHttpExceptionFilter } from './filters/organizations-http-exception.filter.js';
 
 const NO_STORE = 'private, no-store';
 const slugPipe = new OrganizationValidationPipe(organizationSlugSchema);
@@ -46,6 +45,7 @@ const updateMemberPipe = new OrganizationValidationPipe(updateOrganizationMember
 
 @ApiTags('organizations')
 @Controller('organizations')
+@UseFilters(OrganizationsHttpExceptionFilter)
 export class OrganizationsController {
   constructor(
     @Inject(OrganizationsService) private readonly organizationsService: OrganizationsService,
@@ -57,7 +57,7 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'List organizations accessible to the current principal' })
   @ApiResponse({ status: 200, description: 'Active organization memberships' })
   list(): Promise<OrganizationsResponse> {
-    return mapOrganizationsErrors(() => this.organizationsService.list());
+    return this.organizationsService.list();
   }
 
   @Post()
@@ -68,9 +68,7 @@ export class OrganizationsController {
   @ApiBody({ schema: { type: 'object', required: ['name', 'slug'] } })
   @ApiResponse({ status: 201, description: 'Created organization' })
   create(@Body(createOrganizationPipe) body: CreateOrganizationRequest): Promise<Organization> {
-    return mapOrganizationsErrors(() =>
-      this.organizationsService.create({ name: body.name, slug: body.slug }),
-    );
+    return this.organizationsService.create({ name: body.name, slug: body.slug });
   }
 
   @Get(':slug')
@@ -79,7 +77,7 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'Get an accessible organization by its canonical slug' })
   @ApiResponse({ status: 200, description: 'Accessible organization' })
   get(@Param('slug', slugPipe) slug: string): Promise<Organization> {
-    return mapOrganizationsErrors(() => this.organizationsService.get({ slug }));
+    return this.organizationsService.get({ slug });
   }
 
   @Get(':slug/members')
@@ -88,7 +86,7 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'List active members of an accessible organization' })
   @ApiResponse({ status: 200, description: 'Active members' })
   listMembers(@Param('slug', slugPipe) slug: string): Promise<OrganizationMembersResponse> {
-    return mapOrganizationsErrors(() => this.organizationsService.listMembers({ slug }));
+    return this.organizationsService.listMembers({ slug });
   }
 
   @Patch(':slug/members/:userId')
@@ -103,9 +101,7 @@ export class OrganizationsController {
     @Param('userId', userIdPipe) userId: string,
     @Body(updateMemberPipe) body: UpdateOrganizationMemberRequest,
   ): Promise<OrganizationMember> {
-    return mapOrganizationsErrors(() =>
-      this.organizationsService.updateMember({ slug, userId, role: body.role }),
-    );
+    return this.organizationsService.updateMember({ slug, userId, role: body.role });
   }
 
   @Delete(':slug/members/:userId')
@@ -118,7 +114,7 @@ export class OrganizationsController {
     @Param('slug', slugPipe) slug: string,
     @Param('userId', userIdPipe) userId: string,
   ): Promise<void> {
-    return mapOrganizationsErrors(() => this.organizationsService.revokeMember({ slug, userId }));
+    return this.organizationsService.revokeMember({ slug, userId });
   }
 
   @Post(':slug/invitations')
@@ -132,12 +128,10 @@ export class OrganizationsController {
     @Param('slug', slugPipe) slug: string,
     @Body(createInvitationPipe) body: CreateOrganizationInvitationRequest,
   ): Promise<OrganizationInvitation> {
-    return mapOrganizationsErrors(() =>
-      this.organizationsService.createInvitation({
-        slug,
-        email: body.email,
-        role: body.role,
-      }),
-    );
+    return this.organizationsService.createInvitation({
+      slug,
+      email: body.email,
+      role: body.role,
+    });
   }
 }

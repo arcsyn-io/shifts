@@ -8,11 +8,10 @@ import {
   organizations,
   sql,
   userProfiles,
-  withPrincipalContext,
-  type Database,
   type DatabaseTransaction,
 } from '@arcsyn-shift/database';
 import type { OrganizationRole } from '@arcsyn-shift/contracts';
+import { TransactionManager } from '../../../infrastructure/database/transaction-manager.js';
 import type {
   InvitationStateEntity,
   OrganizationEntity,
@@ -22,7 +21,6 @@ import type {
 import {
   OrganizationRepositoryError,
   type OrganizationsRepository,
-  type OrganizationsUnitOfWork,
 } from './organizations.repository.js';
 
 const ORGANIZATION_LIST_LIMIT = 100;
@@ -30,37 +28,14 @@ const MEMBER_LIST_LIMIT = 500;
 const INVITATION_LIST_LIMIT = 100;
 
 export class DrizzleOrganizationsRepository implements OrganizationsRepository {
-  constructor(private readonly database: Database) {}
+  constructor(private readonly transactionManager: TransactionManager) {}
 
-  async withPrincipal<T>(
-    principal: { id: string; email: string },
-    operation: (unitOfWork: OrganizationsUnitOfWork) => Promise<T>,
-  ): Promise<T> {
-    try {
-      return await withPrincipalContext(this.database, principal.id, async (transaction) => {
-        await syncUserProfile(transaction, principal);
-        return operation(new DrizzleOrganizationsUnitOfWork(transaction));
-      });
-    } catch (error) {
-      if (error instanceof OrganizationRepositoryError) throw error;
-      throw mapDatabaseError(error);
-    }
-  }
-}
-
-class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
-  constructor(private readonly transaction: DatabaseTransaction) {}
-
-  async setOrganizationContext(organizationId: string): Promise<void> {
-    await this.transaction.execute(
-      sql`select set_config('app.current_organization_id', ${organizationId}, true)`,
-    );
-  }
-
+  @MapRepositoryErrors()
   async lockOrganization(organizationId: string): Promise<void> {
     await this.transaction.execute(sql`select app_private.lock_organization(${organizationId})`);
   }
 
+  @MapRepositoryErrors()
   async listOrganizations(): Promise<OrganizationEntity[]> {
     const result = await this.transaction.execute<{
       id: string;
@@ -71,22 +46,17 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return result.rows.slice(0, ORGANIZATION_LIST_LIMIT);
   }
 
-  async findOrganizationBySlug(
-    principalId: string,
-    slug: string,
-  ): Promise<OrganizationEntity | undefined> {
+  @MapRepositoryErrors()
+  async findOrganizationIdBySlug(slug: string): Promise<string | undefined> {
     const rows = await this.transaction
-      .select({ id: organizations.id, name: organizations.name, slug: organizations.slug })
+      .select({ id: organizations.id })
       .from(organizations)
       .where(and(eq(organizations.slug, slug), eq(organizations.status, 'active')))
       .limit(1);
-    const organization = rows[0];
-    if (!organization) return undefined;
-    await this.setOrganizationContext(organization.id);
-    const role = await this.findActiveRole(organization.id, principalId);
-    return role ? { ...organization, role } : undefined;
+    return rows[0]?.id;
   }
 
+  @MapRepositoryErrors()
   async findOrganizationById(
     principalId: string,
     organizationId: string,
@@ -98,11 +68,11 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
       .limit(1);
     const organization = rows[0];
     if (!organization) return undefined;
-    await this.setOrganizationContext(organization.id);
     const role = await this.findActiveRole(organization.id, principalId);
     return role ? { ...organization, role } : undefined;
   }
 
+  @MapRepositoryErrors()
   async createOrganization(input: {
     id: string;
     principalId: string;
@@ -125,6 +95,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return { id: input.id, name: input.name, slug: input.slug, role: 'owner' };
   }
 
+  @MapRepositoryErrors()
   async listMembers(organizationId: string): Promise<OrganizationMemberEntity[]> {
     return this.transaction
       .select({
@@ -145,6 +116,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
       .limit(MEMBER_LIST_LIMIT);
   }
 
+  @MapRepositoryErrors()
   async findMember(
     organizationId: string,
     userId: string,
@@ -169,6 +141,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return rows[0];
   }
 
+  @MapRepositoryErrors()
   async updateMemberRole(
     organizationId: string,
     userId: string,
@@ -188,6 +161,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return rows[0] ? this.findMember(organizationId, rows[0].userId) : undefined;
   }
 
+  @MapRepositoryErrors()
   async revokeMember(organizationId: string, userId: string, revokedBy: string): Promise<boolean> {
     const now = new Date();
     const rows = await this.transaction
@@ -204,6 +178,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return rows.length === 1;
   }
 
+  @MapRepositoryErrors()
   async cancelPendingInvitations(
     organizationId: string,
     invitedUserId: string,
@@ -221,6 +196,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
       );
   }
 
+  @MapRepositoryErrors()
   async resolveInvitedUser(email: string, role: OrganizationRole): Promise<string | undefined> {
     const result = await this.transaction.execute<{ id: string | null }>(
       sql`select app_private.resolve_invited_user(${email}, ${role}::organization_role) as id`,
@@ -228,6 +204,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return result.rows[0]?.id ?? undefined;
   }
 
+  @MapRepositoryErrors()
   async createInvitation(input: {
     id: string;
     organization: OrganizationEntity;
@@ -256,6 +233,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     };
   }
 
+  @MapRepositoryErrors()
   async listPendingInvitations(
     principalId: string,
     now: Date,
@@ -285,6 +263,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
       .limit(INVITATION_LIST_LIMIT);
   }
 
+  @MapRepositoryErrors()
   async findInvitationForRecipient(
     invitationId: string,
     principalId: string,
@@ -310,6 +289,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return rows[0];
   }
 
+  @MapRepositoryErrors()
   async activateInvitedMembership(invitation: InvitationStateEntity): Promise<void> {
     const now = new Date();
     const updated = await this.transaction
@@ -341,6 +321,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     });
   }
 
+  @MapRepositoryErrors()
   async acceptInvitation(invitationId: string, acceptedAt: Date): Promise<boolean> {
     const rows = await this.transaction
       .update(organizationInvitations)
@@ -356,6 +337,7 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
     return rows.length === 1;
   }
 
+  @MapRepositoryErrors()
   async hasActiveMembership(organizationId: string, userId: string): Promise<boolean> {
     const rows = await this.transaction
       .select({ userId: organizationMemberships.userId })
@@ -388,20 +370,10 @@ class DrizzleOrganizationsUnitOfWork implements OrganizationsUnitOfWork {
       .limit(1);
     return rows[0]?.role;
   }
-}
 
-async function syncUserProfile(
-  transaction: DatabaseTransaction,
-  principal: { id: string; email: string },
-): Promise<void> {
-  const email = principal.email.trim().toLowerCase();
-  await transaction
-    .insert(userProfiles)
-    .values({ id: principal.id, email })
-    .onConflictDoUpdate({
-      target: userProfiles.id,
-      set: { email, updatedAt: new Date() },
-    });
+  private get transaction(): DatabaseTransaction {
+    return this.transactionManager.getTransaction();
+  }
 }
 
 function mapDatabaseError(error: unknown): OrganizationRepositoryError {
@@ -416,4 +388,20 @@ function mapDatabaseError(error: unknown): OrganizationRepositoryError {
 function getErrorCode(error: unknown): string | undefined {
   if (typeof error !== 'object' || error === null || !('code' in error)) return undefined;
   return typeof error.code === 'string' ? error.code : undefined;
+}
+
+type RepositoryMethod = (...args: unknown[]) => Promise<unknown>;
+
+function MapRepositoryErrors(): MethodDecorator {
+  return (_target, _propertyKey, descriptor: PropertyDescriptor): void => {
+    const method = descriptor.value as RepositoryMethod;
+    descriptor.value = async function (this: object, ...args: unknown[]): Promise<unknown> {
+      try {
+        return await method.apply(this, args);
+      } catch (error) {
+        if (error instanceof OrganizationRepositoryError) throw error;
+        throw mapDatabaseError(error);
+      }
+    };
+  };
 }

@@ -15,12 +15,7 @@ import {
   type OrganizationInvitationsResponse,
 } from '@arcsyn-shift/contracts';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  AuthenticatedPrincipal,
-  BffMutationGuard,
-  type BffPrincipal,
-  BffSessionGuard,
-} from '../../../auth/index.js';
+import { BffMutationGuard, BffSessionGuard } from '../../../auth/index.js';
 import { OrganizationsService } from '../../application/organizations.service.js';
 import {
   mapOrganizationsErrors,
@@ -42,10 +37,8 @@ export class OrganizationInvitationsController {
   @UseGuards(BffSessionGuard)
   @ApiOperation({ summary: 'List valid pending invitations for the current principal' })
   @ApiResponse({ status: 200, description: 'Pending invitations' })
-  list(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
-  ): Promise<OrganizationInvitationsResponse> {
-    return mapOrganizationsErrors(() => this.organizationsService.listInvitations({ principal }));
+  list(): Promise<OrganizationInvitationsResponse> {
+    return mapOrganizationsErrors(() => this.organizationsService.listInvitations());
   }
 
   @Post(':invitationId/accept')
@@ -54,12 +47,9 @@ export class OrganizationInvitationsController {
   @UseGuards(BffMutationGuard)
   @ApiOperation({ summary: 'Accept an invitation atomically and idempotently' })
   @ApiResponse({ status: 200, description: 'Organization access activated' })
-  accept(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
-    @Param('invitationId', invitationIdPipe) invitationId: string,
-  ): Promise<Organization> {
+  accept(@Param('invitationId', invitationIdPipe) invitationId: string): Promise<Organization> {
     return mapOrganizationsErrors(() =>
-      this.organizationsService.acceptInvitation({ principal, invitationId }),
+      this.organizationsService.acceptInvitation({ invitationId }),
     );
   }
 }

@@ -15,14 +15,10 @@ export class OrganizationRepositoryError extends Error {
   }
 }
 
-export interface OrganizationsUnitOfWork {
-  setOrganizationContext(organizationId: string): Promise<void>;
+export interface OrganizationsRepository {
   lockOrganization(organizationId: string): Promise<void>;
   listOrganizations(): Promise<OrganizationEntity[]>;
-  findOrganizationBySlug(
-    principalId: string,
-    slug: string,
-  ): Promise<OrganizationEntity | undefined>;
+  findOrganizationIdBySlug(slug: string): Promise<string | undefined>;
   findOrganizationById(
     principalId: string,
     organizationId: string,
@@ -63,13 +59,6 @@ export interface OrganizationsUnitOfWork {
   activateInvitedMembership(invitation: InvitationStateEntity): Promise<void>;
   acceptInvitation(invitationId: string, acceptedAt: Date): Promise<boolean>;
   hasActiveMembership(organizationId: string, userId: string): Promise<boolean>;
-}
-
-export interface OrganizationsRepository {
-  withPrincipal<T>(
-    principal: { id: string; email: string },
-    operation: (unitOfWork: OrganizationsUnitOfWork) => Promise<T>,
-  ): Promise<T>;
 }
 
 export const ORGANIZATIONS_REPOSITORY = Symbol('ORGANIZATIONS_REPOSITORY');

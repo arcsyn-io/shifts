@@ -1,6 +1,5 @@
 export { AuthModule } from './auth.module.js';
 export {
-  AuthenticatedPrincipal,
   BffMutationGuard,
   type BffPrincipal,
   BffSessionGuard,

@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
+import { ApplicationContext } from '../../../infrastructure/context/application-context.js';
+import { TransactionManager } from '../../../infrastructure/database/transaction-manager.js';
+import { Transactional } from '../../../infrastructure/database/transactional.js';
 import type {
   AcceptOrganizationInvitationCommand,
   CreateOrganizationCommand,
   CreateOrganizationInvitationCommand,
   GetOrganizationCommand,
-  ListOrganizationInvitationsCommand,
   ListOrganizationMembersCommand,
-  ListOrganizationsCommand,
   RevokeOrganizationMemberCommand,
   UpdateOrganizationMemberCommand,
 } from './commands/organizations.command.js';
@@ -21,10 +22,7 @@ import type {
 } from './results/organizations.result.js';
 import { canInvite, canRevokeMember, canUpdateMemberRole } from '../domain/organization-rbac.js';
 import { OrganizationsError } from '../organizations.error.js';
-import {
-  OrganizationRepositoryError,
-  type OrganizationsUnitOfWork,
-} from '../repository/organizations.repository.js';
+import { OrganizationRepositoryError } from '../repository/organizations.repository.js';
 
 type OrganizationsRepositoryPort =
   import('../repository/organizations.repository.js').OrganizationsRepository;
@@ -35,67 +33,63 @@ const INVITATION_VALIDITY_MS = 7 * 24 * 60 * 60 * 1_000;
 export class OrganizationsService {
   constructor(
     private readonly repository: OrganizationsRepositoryPort,
+    private readonly applicationContext: ApplicationContext,
+    readonly transactionManager: TransactionManager,
     private readonly generateId: () => string = randomUUID,
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  async list(command: ListOrganizationsCommand): Promise<OrganizationsResult> {
-    return this.run(command.principal, async (unitOfWork) => ({
-      organizations: await unitOfWork.listOrganizations(),
+  @Transactional()
+  async list(): Promise<OrganizationsResult> {
+    return this.run(async () => ({
+      organizations: await this.repository.listOrganizations(),
     }));
   }
 
+  @Transactional()
   async create(command: CreateOrganizationCommand): Promise<OrganizationResult> {
-    return this.run(command.principal, async (unitOfWork) => {
+    return this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
       const id = this.generateId();
-      await unitOfWork.setOrganizationContext(id);
-      return unitOfWork.createOrganization({
+      await this.transactionManager.selectOrganization(id);
+      return this.repository.createOrganization({
         id,
-        principalId: command.principal.id,
+        principalId: principal.id,
         name: command.name,
         slug: command.slug,
       });
     });
   }
 
+  @Transactional()
   async get(command: GetOrganizationCommand): Promise<OrganizationResult> {
-    return this.run(command.principal, async (unitOfWork) =>
-      this.requireOrganization(unitOfWork, command.principal.id, command.slug),
-    );
+    return this.run(() => this.selectOrganization(command.slug));
   }
 
+  @Transactional()
   async listMembers(command: ListOrganizationMembersCommand): Promise<OrganizationMembersResult> {
-    return this.run(command.principal, async (unitOfWork) => {
-      const organization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
-      );
-      await unitOfWork.setOrganizationContext(organization.id);
-      const members = await unitOfWork.listMembers(organization.id);
+    return this.run(async () => {
+      const organization = await this.selectOrganization(command.slug);
+      const members = await this.repository.listMembers(organization.id);
       return { members: members.map(toMemberResult) };
     });
   }
 
+  @Transactional()
   async updateMember(command: UpdateOrganizationMemberCommand): Promise<OrganizationMemberResult> {
-    return this.run(command.principal, async (unitOfWork) => {
-      const initialOrganization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
-      );
-      await unitOfWork.setOrganizationContext(initialOrganization.id);
-      await unitOfWork.lockOrganization(initialOrganization.id);
-      const organization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
+    return this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
+      const initialOrganization = await this.selectOrganization(command.slug);
+      await this.repository.lockOrganization(initialOrganization.id);
+      const organization = await this.requireSelectedOrganization(
+        principal.id,
+        initialOrganization.id,
       );
       if (!canUpdateMemberRole(organization.role)) throw new OrganizationsError('forbidden');
 
-      const target = await unitOfWork.findMember(organization.id, command.userId);
+      const target = await this.repository.findMember(organization.id, command.userId);
       if (!target) throw new OrganizationsError('not_found');
-      const updated = await unitOfWork.updateMemberRole(
+      const updated = await this.repository.updateMemberRole(
         organization.id,
         command.userId,
         command.role,
@@ -105,84 +99,79 @@ export class OrganizationsService {
     });
   }
 
+  @Transactional()
   async revokeMember(command: RevokeOrganizationMemberCommand): Promise<void> {
-    await this.run(command.principal, async (unitOfWork) => {
-      const initialOrganization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
+    await this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
+      const initialOrganization = await this.selectOrganization(command.slug);
+      await this.repository.lockOrganization(initialOrganization.id);
+      const organization = await this.requireSelectedOrganization(
+        principal.id,
+        initialOrganization.id,
       );
-      await unitOfWork.setOrganizationContext(initialOrganization.id);
-      await unitOfWork.lockOrganization(initialOrganization.id);
-      const organization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
-      );
-      const target = await unitOfWork.findMember(organization.id, command.userId);
+      const target = await this.repository.findMember(organization.id, command.userId);
       if (!target) throw new OrganizationsError('not_found');
-      if (
-        !canRevokeMember(organization.role, target.role, command.principal.id === command.userId)
-      ) {
+      if (!canRevokeMember(organization.role, target.role, principal.id === command.userId)) {
         throw new OrganizationsError('forbidden');
       }
-      await unitOfWork.cancelPendingInvitations(organization.id, command.userId, this.now());
-      if (!(await unitOfWork.revokeMember(organization.id, command.userId, command.principal.id))) {
+      await this.repository.cancelPendingInvitations(organization.id, command.userId, this.now());
+      if (!(await this.repository.revokeMember(organization.id, command.userId, principal.id))) {
         throw new OrganizationsError('conflict');
       }
     });
   }
 
+  @Transactional()
   async createInvitation(
     command: CreateOrganizationInvitationCommand,
   ): Promise<OrganizationInvitationResult> {
-    return this.run(command.principal, async (unitOfWork) => {
-      const organization = await this.requireOrganization(
-        unitOfWork,
-        command.principal.id,
-        command.slug,
-      );
-      await unitOfWork.setOrganizationContext(organization.id);
+    return this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
+      const organization = await this.selectOrganization(command.slug);
       if (!canInvite(organization.role, command.role)) {
         throw new OrganizationsError('forbidden');
       }
 
-      const invitedUserId = await unitOfWork.resolveInvitedUser(command.email, command.role);
+      const invitedUserId = await this.repository.resolveInvitedUser(command.email, command.role);
       if (!invitedUserId) throw new OrganizationsError('user_not_found');
-      if (await unitOfWork.findMember(organization.id, invitedUserId)) {
+      if (await this.repository.findMember(organization.id, invitedUserId)) {
         throw new OrganizationsError('conflict');
       }
 
       const expiresAt = new Date(this.now().getTime() + INVITATION_VALIDITY_MS);
-      const invitation = await unitOfWork.createInvitation({
+      const invitation = await this.repository.createInvitation({
         id: this.generateId(),
         organization,
         invitedUserId,
         role: command.role,
-        invitedBy: command.principal.id,
+        invitedBy: principal.id,
         expiresAt,
       });
       return toInvitationResult(invitation);
     });
   }
 
-  async listInvitations(
-    command: ListOrganizationInvitationsCommand,
-  ): Promise<OrganizationInvitationsResult> {
-    return this.run(command.principal, async (unitOfWork) => ({
-      invitations: (await unitOfWork.listPendingInvitations(command.principal.id, this.now())).map(
-        toInvitationResult,
-      ),
-    }));
+  @Transactional()
+  async listInvitations(): Promise<OrganizationInvitationsResult> {
+    return this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
+      return {
+        invitations: (await this.repository.listPendingInvitations(principal.id, this.now())).map(
+          toInvitationResult,
+        ),
+      };
+    });
   }
 
+  @Transactional()
   async acceptInvitation(
     command: AcceptOrganizationInvitationCommand,
   ): Promise<OrganizationResult> {
-    return this.run(command.principal, async (unitOfWork) => {
-      const initialInvitation = await unitOfWork.findInvitationForRecipient(
+    return this.run(async () => {
+      const principal = this.applicationContext.getPrincipal();
+      const initialInvitation = await this.repository.findInvitationForRecipient(
         command.invitationId,
-        command.principal.id,
+        principal.id,
       );
       if (!initialInvitation) throw new OrganizationsError('invitation_invalid');
 
@@ -193,30 +182,27 @@ export class OrganizationsService {
         throw new OrganizationsError('invitation_invalid');
       }
 
-      await unitOfWork.setOrganizationContext(initialInvitation.organizationId);
+      await this.transactionManager.selectOrganization(initialInvitation.organizationId);
       if (
         initialInvitation.status === 'accepted' &&
-        !(await unitOfWork.hasActiveMembership(
-          initialInvitation.organizationId,
-          command.principal.id,
-        ))
+        !(await this.repository.hasActiveMembership(initialInvitation.organizationId, principal.id))
       ) {
         throw new OrganizationsError('invitation_invalid');
       }
-      await unitOfWork.lockOrganization(initialInvitation.organizationId);
-      const invitation = await unitOfWork.findInvitationForRecipient(
+      await this.repository.lockOrganization(initialInvitation.organizationId);
+      const invitation = await this.repository.findInvitationForRecipient(
         command.invitationId,
-        command.principal.id,
+        principal.id,
       );
       if (!invitation) throw new OrganizationsError('invitation_invalid');
       if (invitation.status === 'accepted') {
-        const active = await unitOfWork.hasActiveMembership(
+        const active = await this.repository.hasActiveMembership(
           invitation.organizationId,
-          command.principal.id,
+          principal.id,
         );
         if (!active) throw new OrganizationsError('invitation_invalid');
-        const organization = await unitOfWork.findOrganizationById(
-          command.principal.id,
+        const organization = await this.repository.findOrganizationById(
+          principal.id,
           invitation.organizationId,
         );
         if (!organization) throw new OrganizationsError('invitation_invalid');
@@ -227,12 +213,12 @@ export class OrganizationsService {
         throw new OrganizationsError('invitation_invalid');
       }
 
-      await unitOfWork.activateInvitedMembership(invitation);
-      if (!(await unitOfWork.acceptInvitation(invitation.id, this.now()))) {
+      await this.repository.activateInvitedMembership(invitation);
+      if (!(await this.repository.acceptInvitation(invitation.id, this.now()))) {
         throw new OrganizationsError('invitation_invalid');
       }
-      const organization = await unitOfWork.findOrganizationById(
-        command.principal.id,
+      const organization = await this.repository.findOrganizationById(
+        principal.id,
         invitation.organizationId,
       );
       if (!organization) throw new OrganizationsError('invitation_invalid');
@@ -240,22 +226,26 @@ export class OrganizationsService {
     });
   }
 
-  private async requireOrganization(
-    unitOfWork: OrganizationsUnitOfWork,
+  private async requireSelectedOrganization(
     principalId: string,
-    slug: string,
+    organizationId: string,
   ): Promise<OrganizationResult> {
-    const organization = await unitOfWork.findOrganizationBySlug(principalId, slug);
+    const organization = await this.repository.findOrganizationById(principalId, organizationId);
     if (!organization) throw new OrganizationsError('not_found');
     return organization;
   }
 
-  private async run<T>(
-    principal: { id: string; email: string },
-    operation: (unitOfWork: OrganizationsUnitOfWork) => Promise<T>,
-  ): Promise<T> {
+  private async selectOrganization(slug: string): Promise<OrganizationResult> {
+    const principal = this.applicationContext.getPrincipal();
+    const organizationId = await this.repository.findOrganizationIdBySlug(slug);
+    if (!organizationId) throw new OrganizationsError('not_found');
+    await this.transactionManager.selectOrganization(organizationId);
+    return this.requireSelectedOrganization(principal.id, organizationId);
+  }
+
+  private async run<T>(operation: () => Promise<T>): Promise<T> {
     try {
-      return await this.repository.withPrincipal(principal, operation);
+      return await operation();
     } catch (error) {
       if (error instanceof OrganizationsError) throw error;
       if (error instanceof OrganizationRepositoryError) {

@@ -3,6 +3,10 @@ import type { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  ApplicationContext,
+  ApplicationContextAuthenticator,
+} from '../src/infrastructure/context/application-context.js';
 import type { AuthConfig } from '../src/modules/auth/auth.tokens.js';
 import {
   BffMutationGuard,
@@ -51,14 +55,19 @@ function createContext(
 describe('organizations BFF security guards', () => {
   it('validates the authoritative Supabase session on every request', async () => {
     const execute = vi.fn().mockResolvedValue({ response: { principal } });
-    const guard = new BffSessionGuard({ execute }, config);
+    const applicationContext = new ApplicationContext();
+    const guard = new BffSessionGuard(
+      { execute },
+      config,
+      new ApplicationContextAuthenticator(applicationContext),
+    );
 
     for (let requestNumber = 0; requestNumber < 2; requestNumber += 1) {
       const { context } = createContext({
         cookie: 'arcsyn_access=access-token',
         'sec-fetch-site': 'same-origin',
       });
-      await expect(guard.canActivate(context)).resolves.toBe(true);
+      await expect(applicationContext.run(() => guard.canActivate(context))).resolves.toBe(true);
     }
 
     expect(execute).toHaveBeenCalledTimes(2);
@@ -70,7 +79,12 @@ describe('organizations BFF security guards', () => {
 
   it('rejects Bearer credentials before calling the BFF session use case', async () => {
     const execute = vi.fn();
-    const guard = new BffSessionGuard({ execute }, config);
+    const applicationContext = new ApplicationContext();
+    const guard = new BffSessionGuard(
+      { execute },
+      config,
+      new ApplicationContextAuthenticator(applicationContext),
+    );
     const { context } = createContext({ authorization: 'Bearer token' });
 
     await expect(guard.canActivate(context)).rejects.toMatchObject({ status: 401 });
@@ -81,11 +95,29 @@ describe('organizations BFF security guards', () => {
     const guard = new BffSessionGuard(
       { execute: vi.fn().mockRejectedValue(new AuthError('invalid_session')) },
       config,
+      new ApplicationContextAuthenticator(new ApplicationContext()),
     );
     const { context, reply } = createContext({ cookie: 'arcsyn_access=invalid' });
 
     await expect(guard.canActivate(context)).rejects.toMatchObject({ status: 401 });
     expect(reply.header).toHaveBeenCalledWith('Set-Cookie', expect.any(Array));
+  });
+
+  it('defines the authenticated principal once in the request application context', async () => {
+    const applicationContext = new ApplicationContext();
+    const guard = new BffSessionGuard(
+      { execute: vi.fn().mockResolvedValue({ response: { principal } }) },
+      config,
+      new ApplicationContextAuthenticator(applicationContext),
+    );
+    const { context } = createContext({ cookie: 'arcsyn_access=access-token' });
+
+    await applicationContext.run(async () => {
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(applicationContext.getPrincipal()).toEqual(principal);
+      await expect(guard.canActivate(context)).rejects.toMatchObject({ status: 503 });
+      expect(applicationContext.getPrincipal()).toEqual(principal);
+    });
   });
 
   it.each([undefined, 'https://evil.example'])('rejects mutation origin %s', async (origin) => {

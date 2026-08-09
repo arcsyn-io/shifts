@@ -16,16 +16,28 @@ describe('organizations Nest dependency injection', () => {
       SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
     });
     const { AppModule } = await import('../src/app.module.js');
-    app = await NestFactory.createApplicationContext(AppModule, { logger: false });
+    app = await NestFactory.createApplicationContext(AppModule, {
+      abortOnError: false,
+      logger: false,
+    });
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
-  it('resolves the organizations module with guards exported by auth', async () => {
+  it('keeps organizations services, repositories and transaction state holders singleton', async () => {
     const { OrganizationsService } =
       await import('../src/modules/organizations/application/organizations.service.js');
-    expect(app.get(OrganizationsService)).toBeInstanceOf(OrganizationsService);
+    const { ORGANIZATIONS_REPOSITORY } =
+      await import('../src/modules/organizations/repository/organizations.repository.js');
+    const { TransactionManager } =
+      await import('../src/infrastructure/database/transaction-manager.js');
+    const { OrganizationsController } =
+      await import('../src/modules/organizations/presentation/http/organizations.controller.js');
+    expect(app.get(OrganizationsService)).toBe(app.get(OrganizationsService));
+    expect(app.get(ORGANIZATIONS_REPOSITORY)).toBe(app.get(ORGANIZATIONS_REPOSITORY));
+    expect(app.get(TransactionManager)).toBe(app.get(TransactionManager));
+    expect(app.get(OrganizationsController)).toBe(app.get(OrganizationsController));
   });
 });

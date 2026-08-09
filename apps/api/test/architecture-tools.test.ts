@@ -121,6 +121,126 @@ describe('checkArchitecture', () => {
     await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
   });
 
+  it('accepts only the approved context and transaction infrastructure contracts', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('organizations', { sourceRoot });
+    await createModule('auth', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/organizations/application/organizations.service.ts',
+      "import { ApplicationContext } from '../../../infrastructure/context/application-context.js';\n" +
+        "import { TransactionManager } from '../../../infrastructure/database/transaction-manager.js';\n" +
+        "import { Transactional } from '../../../infrastructure/database/transactional.js';\n" +
+        'export class OrganizationsService {}\n',
+    );
+    await writeSource(
+      sourceRoot,
+      'modules/auth/presentation/http/guards/bff-session.guard.ts',
+      "import { ApplicationContextAuthenticator } from '../../../../../infrastructure/context/application-context.js';\n" +
+        'export class BffSessionGuard {}\n',
+    );
+
+    await expect(checkArchitecture({ sourceRoot })).resolves.toEqual([]);
+  });
+
+  it('continues rejecting unapproved infrastructure imports from application', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('organizations', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/organizations/application/organizations.service.ts',
+      "import { DatabaseModule } from '../../../infrastructure/database/database.module.js';\n" +
+        'export class OrganizationsService {}\n',
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual([
+      expect.stringContaining('application so pode importar os contratos transacionais'),
+    ]);
+  });
+
+  it('rejects application context imports outside the authentication adapter', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('organizations', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/organizations/presentation/http/organizations.controller.ts',
+      "import { ApplicationContext } from '../../../../infrastructure/context/application-context.js';\n" +
+        'export class OrganizationsController {}\n',
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual([
+      expect.stringContaining('contexto no adapter autenticador'),
+    ]);
+  });
+
+  it.each(['ApplicationContextAuthenticator', 'ApplicationTransactionContext'])(
+    'rejects the privileged capability %s from an application service',
+    async (capability) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('organizations', { sourceRoot });
+      await writeSource(
+        sourceRoot,
+        'modules/organizations/application/organizations.service.ts',
+        `import { ${capability} } from '../../../infrastructure/context/application-context.js';\n` +
+          'export class OrganizationsService {}\n',
+      );
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual([
+        expect.stringContaining(`${capability} e uma capability privilegiada`),
+      ]);
+    },
+  );
+
+  it('rejects direct database package access from application', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('organizations', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/organizations/application/organizations.service.ts',
+      "import { sql } from '@arcsyn-shift/database';\nexport class OrganizationsService {}\n",
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual([
+      expect.stringContaining('application deve acessar persistencia pelos repositories'),
+    ]);
+  });
+
+  it.each(['Database', 'createDatabase', 'withPrincipalContext'])(
+    'rejects privileged database API %s from a repository',
+    async (identifier) => {
+      const sourceRoot = await createTemporarySource();
+      await createModule('organizations', { sourceRoot });
+      await writeSource(
+        sourceRoot,
+        'modules/organizations/repository/organizations.repository.ts',
+        `import { ${identifier} } from '@arcsyn-shift/database';\n` +
+          'export class OrganizationsRepository {}\n',
+      );
+
+      expect(await checkArchitecture({ sourceRoot })).toEqual([
+        expect.stringContaining(`${identifier} e acesso privilegiado`),
+      ]);
+    },
+  );
+
+  it('rejects the root database module from a repository', async () => {
+    const sourceRoot = await createTemporarySource();
+    await createModule('organizations', { sourceRoot });
+    await writeSource(
+      sourceRoot,
+      'modules/organizations/repository/organizations.repository.ts',
+      "import { DATABASE } from '../../../infrastructure/database/database.module.js';\n" +
+        'export class OrganizationsRepository {}\n',
+    );
+
+    expect(await checkArchitecture({ sourceRoot })).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('DATABASE e acesso privilegiado'),
+        expect.stringContaining('repository so pode importar o TransactionManager'),
+      ]),
+    );
+  });
+
   it('reports missing structure, nested infrastructure and module file', async () => {
     const sourceRoot = await createTemporarySource();
     await mkdir(path.join(sourceRoot, 'modules/broken/infrastructure'), { recursive: true });

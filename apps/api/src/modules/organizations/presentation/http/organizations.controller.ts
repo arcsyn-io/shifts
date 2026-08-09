@@ -28,13 +28,7 @@ import {
   type UpdateOrganizationMemberRequest,
 } from '@arcsyn-shift/contracts';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  AuthenticatedPrincipal,
-  BffMutationGuard,
-  type BffPrincipal,
-  BffSessionGuard,
-  RequireBffJsonBody,
-} from '../../../auth/index.js';
+import { BffMutationGuard, BffSessionGuard, RequireBffJsonBody } from '../../../auth/index.js';
 import { OrganizationsService } from '../../application/organizations.service.js';
 import {
   mapOrganizationsErrors,
@@ -62,8 +56,8 @@ export class OrganizationsController {
   @UseGuards(BffSessionGuard)
   @ApiOperation({ summary: 'List organizations accessible to the current principal' })
   @ApiResponse({ status: 200, description: 'Active organization memberships' })
-  list(@AuthenticatedPrincipal() principal: BffPrincipal): Promise<OrganizationsResponse> {
-    return mapOrganizationsErrors(() => this.organizationsService.list({ principal }));
+  list(): Promise<OrganizationsResponse> {
+    return mapOrganizationsErrors(() => this.organizationsService.list());
   }
 
   @Post()
@@ -73,12 +67,9 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'Create an organization and its first owner atomically' })
   @ApiBody({ schema: { type: 'object', required: ['name', 'slug'] } })
   @ApiResponse({ status: 201, description: 'Created organization' })
-  create(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
-    @Body(createOrganizationPipe) body: CreateOrganizationRequest,
-  ): Promise<Organization> {
+  create(@Body(createOrganizationPipe) body: CreateOrganizationRequest): Promise<Organization> {
     return mapOrganizationsErrors(() =>
-      this.organizationsService.create({ principal, name: body.name, slug: body.slug }),
+      this.organizationsService.create({ name: body.name, slug: body.slug }),
     );
   }
 
@@ -87,11 +78,8 @@ export class OrganizationsController {
   @UseGuards(BffSessionGuard)
   @ApiOperation({ summary: 'Get an accessible organization by its canonical slug' })
   @ApiResponse({ status: 200, description: 'Accessible organization' })
-  get(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
-    @Param('slug', slugPipe) slug: string,
-  ): Promise<Organization> {
-    return mapOrganizationsErrors(() => this.organizationsService.get({ principal, slug }));
+  get(@Param('slug', slugPipe) slug: string): Promise<Organization> {
+    return mapOrganizationsErrors(() => this.organizationsService.get({ slug }));
   }
 
   @Get(':slug/members')
@@ -99,11 +87,8 @@ export class OrganizationsController {
   @UseGuards(BffSessionGuard)
   @ApiOperation({ summary: 'List active members of an accessible organization' })
   @ApiResponse({ status: 200, description: 'Active members' })
-  listMembers(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
-    @Param('slug', slugPipe) slug: string,
-  ): Promise<OrganizationMembersResponse> {
-    return mapOrganizationsErrors(() => this.organizationsService.listMembers({ principal, slug }));
+  listMembers(@Param('slug', slugPipe) slug: string): Promise<OrganizationMembersResponse> {
+    return mapOrganizationsErrors(() => this.organizationsService.listMembers({ slug }));
   }
 
   @Patch(':slug/members/:userId')
@@ -114,13 +99,12 @@ export class OrganizationsController {
   @ApiBody({ schema: { type: 'object', required: ['role'] } })
   @ApiResponse({ status: 200, description: 'Updated member' })
   updateMember(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
     @Param('slug', slugPipe) slug: string,
     @Param('userId', userIdPipe) userId: string,
     @Body(updateMemberPipe) body: UpdateOrganizationMemberRequest,
   ): Promise<OrganizationMember> {
     return mapOrganizationsErrors(() =>
-      this.organizationsService.updateMember({ principal, slug, userId, role: body.role }),
+      this.organizationsService.updateMember({ slug, userId, role: body.role }),
     );
   }
 
@@ -131,13 +115,10 @@ export class OrganizationsController {
   @ApiOperation({ summary: 'Revoke an organization membership' })
   @ApiResponse({ status: 204, description: 'Membership revoked' })
   revokeMember(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
     @Param('slug', slugPipe) slug: string,
     @Param('userId', userIdPipe) userId: string,
   ): Promise<void> {
-    return mapOrganizationsErrors(() =>
-      this.organizationsService.revokeMember({ principal, slug, userId }),
-    );
+    return mapOrganizationsErrors(() => this.organizationsService.revokeMember({ slug, userId }));
   }
 
   @Post(':slug/invitations')
@@ -148,13 +129,11 @@ export class OrganizationsController {
   @ApiBody({ schema: { type: 'object', required: ['email', 'role'] } })
   @ApiResponse({ status: 201, description: 'Created invitation' })
   createInvitation(
-    @AuthenticatedPrincipal() principal: BffPrincipal,
     @Param('slug', slugPipe) slug: string,
     @Body(createInvitationPipe) body: CreateOrganizationInvitationRequest,
   ): Promise<OrganizationInvitation> {
     return mapOrganizationsErrors(() =>
       this.organizationsService.createInvitation({
-        principal,
         slug,
         email: body.email,
         role: body.role,

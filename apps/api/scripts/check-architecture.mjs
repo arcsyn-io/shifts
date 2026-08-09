@@ -18,6 +18,30 @@ const SHARED_ARTIFACT_EXCEPTIONS = new Set([
   'infrastructure/mcp/mcp.controller.ts',
   'infrastructure/mcp/mcp-tool.ts',
 ]);
+const APPLICATION_INFRASTRUCTURE_IMPORTS = new Set([
+  'infrastructure/context/application-context.js',
+  'infrastructure/database/transaction-manager.js',
+  'infrastructure/database/transactional.js',
+]);
+const AUTH_CONTEXT_ADAPTER = 'modules/auth/presentation/http/guards/bff-session.guard.ts';
+const PRIVILEGED_CONTEXT_CAPABILITIES = new Map([
+  [
+    'ApplicationContextAuthenticator',
+    new Set([
+      'infrastructure/context/application-context.ts',
+      'modules/auth/auth.module.ts',
+      AUTH_CONTEXT_ADAPTER,
+    ]),
+  ],
+  [
+    'ApplicationTransactionContext',
+    new Set([
+      'infrastructure/context/application-context.ts',
+      'infrastructure/database/database.module.ts',
+      'infrastructure/database/transaction-manager.ts',
+    ]),
+  ],
+]);
 const ARTIFACT_RULES = [
   {
     name: 'DTO',
@@ -255,6 +279,31 @@ function validateArtifactsOutsideModules(relativeFile, source) {
   return errors;
 }
 
+function validatePrivilegedContextCapabilities(relativeFile, source) {
+  const errors = [];
+
+  for (const [capability, allowedFiles] of PRIVILEGED_CONTEXT_CAPABILITIES) {
+    if (!source.includes(capability) || allowedFiles.has(relativeFile)) continue;
+    errors.push(
+      `${relativeFile}: ${capability} e uma capability privilegiada restrita a composicao autorizada.`,
+    );
+  }
+
+  return errors;
+}
+
+function validatePrivilegedDatabaseAccess(relativeFile, source) {
+  if (relativeFile.startsWith('infrastructure/database/')) return [];
+
+  const privilegedIdentifiers = ['createDatabase', 'Database', 'DATABASE', 'withPrincipalContext'];
+  return privilegedIdentifiers
+    .filter((identifier) => new RegExp(`\\b${identifier}\\b`).test(source))
+    .map(
+      (identifier) =>
+        `${relativeFile}: ${identifier} e acesso privilegiado restrito a infraestrutura de banco.`,
+    );
+}
+
 function resolveImport(importer, specifier, sourceRoot) {
   if (specifier.startsWith('.')) {
     return normalize(path.relative(sourceRoot, path.resolve(path.dirname(importer), specifier)));
@@ -293,6 +342,10 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
 
   const importedLayer =
     resolved && importedModule === moduleName ? layerFromPath(resolved, moduleName) : null;
+  const isApprovedPresentationInfrastructure =
+    resolved === 'infrastructure/mcp/mcp-tool.js' ||
+    (resolved === 'infrastructure/context/application-context.js' &&
+      relativeFile === AUTH_CONTEXT_ADAPTER);
 
   if (layer === 'domain') {
     const forbiddenPackage =
@@ -326,10 +379,10 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   if (
     layer === 'presentation' &&
     resolved?.startsWith('infrastructure/') &&
-    !resolved.startsWith('infrastructure/mcp/mcp-tool')
+    !isApprovedPresentationInfrastructure
   ) {
     errors.push(
-      `${relativeFile}: presentation so pode importar da infraestrutura o contrato MCP compartilhado (${specifier}).`,
+      `${relativeFile}: presentation so pode importar o contexto no adapter autenticador ou o contrato MCP (${specifier}).`,
     );
   }
 
@@ -343,9 +396,22 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
     );
   }
 
-  if (layer === 'application' && resolved?.startsWith('infrastructure/')) {
+  if (
+    layer === 'application' &&
+    (specifier === '@arcsyn-shift/database' || specifier.startsWith('@arcsyn-shift/database/'))
+  ) {
     errors.push(
-      `${relativeFile}: application nao pode depender da infraestrutura compartilhada (${specifier}).`,
+      `${relativeFile}: application deve acessar persistencia pelos repositories (${specifier}).`,
+    );
+  }
+
+  if (
+    layer === 'application' &&
+    resolved?.startsWith('infrastructure/') &&
+    !APPLICATION_INFRASTRUCTURE_IMPORTS.has(resolved)
+  ) {
+    errors.push(
+      `${relativeFile}: application so pode importar os contratos transacionais compartilhados (${specifier}).`,
     );
   }
 
@@ -357,6 +423,17 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   ) {
     errors.push(
       `${relativeFile}: repository so pode depender de domain dentro do modulo (${specifier}).`,
+    );
+  }
+
+
+  if (
+    layer === 'repository' &&
+    resolved?.startsWith('infrastructure/') &&
+    resolved !== 'infrastructure/database/transaction-manager.js'
+  ) {
+    errors.push(
+      `${relativeFile}: repository so pode importar o TransactionManager da infraestrutura (${specifier}).`,
     );
   }
 
@@ -396,6 +473,8 @@ export async function checkArchitecture(options = {}) {
     const relativeFile = normalize(path.relative(sourceRoot, file));
     const source = await readFile(file, 'utf8');
     errors.push(...validateArtifactsOutsideModules(relativeFile, source));
+    errors.push(...validatePrivilegedContextCapabilities(relativeFile, source));
+    errors.push(...validatePrivilegedDatabaseAccess(relativeFile, source));
   }
 
   for (const entry of moduleEntries) {

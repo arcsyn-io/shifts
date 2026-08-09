@@ -1,6 +1,5 @@
 import {
   CanActivate,
-  createParamDecorator,
   ExecutionContext,
   ForbiddenException,
   HttpException,
@@ -12,6 +11,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import {
+  ApplicationContextAuthenticator,
+  type AuthenticatedPrincipal,
+} from '../../../../../infrastructure/context/application-context.js';
 import { AuthError } from '../../../auth.error.js';
 import {
   AUTH_CONFIG,
@@ -25,30 +28,24 @@ import {
   readAuthCookies,
 } from '../mappers/auth-cookies.mapper.js';
 
-const AUTHENTICATED_PRINCIPAL = Symbol('AUTHENTICATED_PRINCIPAL');
 const BFF_JSON_BODY = Symbol('BFF_JSON_BODY');
 
 export const RequireBffJsonBody = () => SetMetadata(BFF_JSON_BODY, true);
 
-export interface BffPrincipal {
-  id: string;
-  email: string;
-}
-
-type BffAuthenticatedRequest = FastifyRequest & {
-  [AUTHENTICATED_PRINCIPAL]?: BffPrincipal;
-};
+export type BffPrincipal = AuthenticatedPrincipal;
 
 @Injectable()
 export class BffSessionGuard implements CanActivate {
   constructor(
     @Inject(GET_SESSION_USE_CASE) private readonly getSessionUseCase: GetSessionExecutor,
     @Inject(AUTH_CONFIG) private readonly config: AuthConfig,
+    @Inject(ApplicationContextAuthenticator)
+    private readonly applicationContextAuthenticator: ApplicationContextAuthenticator,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const http = context.switchToHttp();
-    const request = http.getRequest<BffAuthenticatedRequest>();
+    const request = http.getRequest<FastifyRequest>();
     const reply = http.getResponse<FastifyReply>();
 
     if (request.headers.authorization) {
@@ -60,7 +57,7 @@ export class BffSessionGuard implements CanActivate {
         ...readAuthCookies(this.config, request.headers.cookie),
         allowRefresh: this.hasTrustedSessionOrigin(request),
       });
-      request[AUTHENTICATED_PRINCIPAL] = session.response.principal;
+      this.applicationContextAuthenticator.setPrincipal(session.response.principal);
       if (session.renewedSession) {
         reply.header('Set-Cookie', createSessionCookies(this.config, session.renewedSession));
       }
@@ -136,17 +133,3 @@ export class BffMutationGuard implements CanActivate {
     return this.sessionGuard.canActivate(context);
   }
 }
-
-export const AuthenticatedPrincipal = createParamDecorator(
-  (_data: unknown, context: ExecutionContext): BffPrincipal => {
-    const request = context.switchToHttp().getRequest<BffAuthenticatedRequest>();
-    const principal = request[AUTHENTICATED_PRINCIPAL];
-    if (!principal) {
-      throw new UnauthorizedException({
-        code: 'AUTH_UNAUTHORIZED',
-        message: 'Sessão inválida ou expirada.',
-      });
-    }
-    return principal;
-  },
-);

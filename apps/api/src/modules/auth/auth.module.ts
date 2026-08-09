@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { loadConfig } from '@arcsyn-shift/config';
+import { ApplicationContextAuthenticator } from '../../infrastructure/context/application-context.js';
+import { ApplicationContextModule } from '../../infrastructure/context/application-context.module.js';
 import {
   AUTH_CONFIG,
   GET_SESSION_USE_CASE,
@@ -32,12 +34,14 @@ function loadAuthConfig(): AuthConfig {
 }
 
 @Module({
+  imports: [ApplicationContextModule],
   controllers: [AuthController],
   providers: [
     { provide: AUTH_CONFIG, useFactory: loadAuthConfig },
     { provide: SUPABASE_AUTH_CONFIG, useFactory: loadAuthConfig },
     { provide: AUTH_FETCH, useValue: globalThis.fetch.bind(globalThis) },
     { provide: AUTH_REPOSITORY, useClass: SupabaseAuthRepository },
+    ApplicationContextAuthenticator,
     BffSessionGuard,
     BffMutationGuard,
     {
@@ -56,6 +60,12 @@ function loadAuthConfig(): AuthConfig {
       inject: [AUTH_REPOSITORY],
     },
   ],
-  exports: [AUTH_CONFIG, GET_SESSION_USE_CASE, BffSessionGuard, BffMutationGuard],
+  exports: [
+    AUTH_CONFIG,
+    GET_SESSION_USE_CASE,
+    ApplicationContextAuthenticator,
+    BffSessionGuard,
+    BffMutationGuard,
+  ],
 })
 export class AuthModule {}

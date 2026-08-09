@@ -1,20 +1,11 @@
 import type { OrganizationRole } from '@arcsyn-shift/contracts';
 
-export interface OrganizationPrincipal {
-  id: string;
-  email: string;
-}
-
-export interface ListOrganizationsCommand {
-  principal: OrganizationPrincipal;
-}
-
-export interface CreateOrganizationCommand extends ListOrganizationsCommand {
+export interface CreateOrganizationCommand {
   name: string;
   slug: string;
 }
 
-export interface GetOrganizationCommand extends ListOrganizationsCommand {
+export interface GetOrganizationCommand {
   slug: string;
 }
 
@@ -34,8 +25,6 @@ export interface CreateOrganizationInvitationCommand extends GetOrganizationComm
   role: OrganizationRole;
 }
 
-export type ListOrganizationInvitationsCommand = ListOrganizationsCommand;
-
-export interface AcceptOrganizationInvitationCommand extends ListOrganizationsCommand {
+export interface AcceptOrganizationInvitationCommand {
   invitationId: string;
 }

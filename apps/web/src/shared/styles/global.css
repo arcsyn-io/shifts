@@ -212,6 +212,229 @@ body {
   max-inline-size: 42rem;
 }
 
+.organizations-home,
+.organizations-section,
+.organization-workspace,
+.organization-members {
+  display: grid;
+  gap: var(--arcsyn-spacing-4);
+  min-inline-size: 0;
+}
+
+.organizations-home {
+  gap: var(--arcsyn-spacing-6);
+}
+
+.organizations-section__heading {
+  align-items: end;
+  display: flex;
+  gap: var(--arcsyn-spacing-3);
+  justify-content: space-between;
+}
+
+.organizations-section__heading p,
+.organizations-section__heading h2 {
+  margin: 0;
+}
+
+.organizations-section__heading p {
+  color: var(--arcsyn-color-muted-foreground);
+  font-size: var(--arcsyn-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.organizations-section__heading h2 {
+  font-size: var(--arcsyn-font-size-lg);
+  letter-spacing: -0.02em;
+  margin-block-start: var(--arcsyn-spacing-1);
+}
+
+.organization-card-grid,
+.invitation-list,
+.member-list {
+  display: grid;
+  gap: var(--arcsyn-spacing-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.organization-card-link {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.organization-card-link:focus-visible {
+  border-radius: var(--arcsyn-radius-lg);
+  outline: 2px solid var(--arcsyn-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.organization-card__content,
+.invitation-card__content,
+.member-card__content {
+  align-items: center;
+  display: flex;
+  gap: var(--arcsyn-spacing-3);
+  min-inline-size: 0;
+}
+
+.organization-card__icon {
+  align-items: center;
+  background: var(--arcsyn-color-surface-sunken);
+  border: 1px solid var(--arcsyn-color-border);
+  border-radius: var(--arcsyn-radius-md);
+  color: var(--arcsyn-color-primary);
+  display: inline-flex;
+  flex: 0 0 auto;
+  block-size: 2.5rem;
+  inline-size: 2.5rem;
+  justify-content: center;
+}
+
+.organization-card__copy,
+.member-card__identity {
+  min-inline-size: 0;
+}
+
+.organization-card__copy {
+  flex: 1;
+}
+
+.organization-card__copy .arcsyn-card__title,
+.member-card__identity strong {
+  overflow-wrap: anywhere;
+}
+
+.organization-card__copy .arcsyn-card__description {
+  margin-block-start: var(--arcsyn-spacing-1);
+}
+
+.invitation-card__content,
+.member-card__content {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.invitation-card__content > div:first-child,
+.member-card__identity {
+  flex: 1;
+}
+
+.invitation-card__actions,
+.member-card__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--arcsyn-spacing-2);
+  inline-size: 100%;
+}
+
+.organization-create-card .arcsyn-card__header,
+.organization-invite-card .arcsyn-card__header {
+  display: grid;
+  gap: var(--arcsyn-spacing-1);
+}
+
+.organization-form,
+.organization-invite-form {
+  display: grid;
+  gap: var(--arcsyn-spacing-3);
+}
+
+.organization-form .arcsyn-button,
+.organization-invite-form .arcsyn-button {
+  justify-self: start;
+}
+
+.organization-alert-focus:focus {
+  outline: none;
+}
+
+.organization-alert-focus:focus-visible {
+  border-radius: var(--arcsyn-radius-md);
+  outline: 2px solid var(--arcsyn-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.organization-page {
+  inline-size: min(100%, 90rem);
+  margin-inline: auto;
+  padding: var(--arcsyn-spacing-3);
+}
+
+.organization-route-state {
+  min-block-size: calc(100dvh - 8rem);
+}
+
+.organization-link-button {
+  align-items: center;
+  background: var(--arcsyn-color-primary);
+  border: 1px solid transparent;
+  border-radius: var(--arcsyn-radius-md);
+  color: var(--arcsyn-color-primary-foreground);
+  display: inline-flex;
+  font-size: var(--arcsyn-font-size-sm);
+  font-weight: 600;
+  min-block-size: 2.5rem;
+  padding-inline: var(--arcsyn-spacing-3);
+  text-decoration: none;
+}
+
+.organization-link-button:focus-visible {
+  outline: 2px solid var(--arcsyn-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.organization-workspace__header {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--arcsyn-spacing-3);
+  padding-block: var(--arcsyn-spacing-3);
+}
+
+.organization-workspace__header h1,
+.organization-workspace__header p {
+  margin: 0;
+}
+
+.organization-workspace__header h1 {
+  font-size: clamp(1.75rem, 8vw, 2.75rem);
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.organization-workspace__header > div > p:last-child {
+  color: var(--arcsyn-color-muted-foreground);
+  margin-block-start: var(--arcsyn-spacing-2);
+}
+
+.organization-workspace__eyebrow {
+  color: var(--arcsyn-color-primary);
+  font-size: var(--arcsyn-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.member-card__identity {
+  display: grid;
+  gap: var(--arcsyn-spacing-1);
+}
+
+.member-card__identity span {
+  color: var(--arcsyn-color-muted-foreground);
+  font-size: var(--arcsyn-font-size-xs);
+}
+
+.member-card__actions .arcsyn-native-select {
+  min-inline-size: 8rem;
+}
+
 .health-status {
   align-items: center;
   display: flex;
@@ -708,6 +931,53 @@ body {
   }
 }
 
+@media (min-width: 48rem) {
+  .organization-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .organization-form {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .organization-form .arcsyn-button {
+    margin-block-start: 1.45rem;
+  }
+
+  .organization-invite-form {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(9rem, 0.35fr) auto;
+  }
+
+  .organization-invite-form .arcsyn-button {
+    margin-block-start: 1.45rem;
+  }
+
+  .invitation-card__content,
+  .member-card__content,
+  .organization-workspace__header {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .invitation-card__actions,
+  .member-card__actions {
+    inline-size: auto;
+    justify-content: flex-end;
+  }
+
+  .organization-page {
+    padding: var(--arcsyn-spacing-6);
+  }
+}
+
+@media (min-width: 72rem) {
+  .organization-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 39.99rem) {
   .app-topbar {
     min-block-size: 3.75rem;
@@ -726,6 +996,20 @@ body {
   .home-section-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .organizations-section__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .organization-card__content {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .organization-card__copy {
+    flex-basis: calc(100% - 4rem);
   }
 
   .home-empty-state__content {

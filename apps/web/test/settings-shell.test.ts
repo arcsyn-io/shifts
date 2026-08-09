@@ -7,18 +7,20 @@ const settingsDialogUrl = new URL(
   webRootUrl,
 );
 const homePageUrl = new URL('src/pages/home/HomePage.tsx', webRootUrl);
+const applicationShellUrl = new URL('src/pages/layouts/ApplicationShell.tsx', webRootUrl);
 const loginFormUrl = new URL('src/features/auth/components/LoginForm.tsx', webRootUrl);
 const globalStylesUrl = new URL('src/shared/styles/global.css', webRootUrl);
 
 describe('settings preferences shell', () => {
   it('opens settings from the sidebar without duplicate locale controls', async () => {
-    const [homePage, loginForm] = await Promise.all([
+    const [homePage, applicationShell, loginForm] = await Promise.all([
       readFile(homePageUrl, 'utf8'),
+      readFile(applicationShellUrl, 'utf8'),
       readFile(loginFormUrl, 'utf8'),
     ]);
 
-    expect(homePage).toContain('<SettingsDialog');
-    expect(homePage).toContain('onClick={() => setSettingsOpen(true)}');
+    expect(applicationShell).toContain('<SettingsDialog');
+    expect(applicationShell).toContain('onClick={() => setSettingsOpen(true)}');
     expect(homePage).not.toContain('<LocaleSwitcher');
     expect(loginForm).not.toContain('<LocaleSwitcher');
   });

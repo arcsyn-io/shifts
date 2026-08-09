@@ -56,9 +56,8 @@ export const ptBR = {
     },
     header: {
       eyebrow: 'ArcSyn Shift',
-      title: 'Organize sua operação em um só lugar.',
-      description:
-        'Este é o ponto de partida para acompanhar escalas, pessoas e rotinas da sua equipe.',
+      title: 'Suas organizações',
+      description: 'Escolha um ambiente, aceite um convite ou crie uma nova organização.',
       createSchedule: 'Criar escala',
     },
     overview: {
@@ -68,6 +67,101 @@ export const ptBR = {
       emptyTitle: 'Tudo pronto para começar',
       emptyDescription:
         'Os resumos da operação aparecerão aqui conforme os módulos forem disponibilizados.',
+    },
+  },
+  organizations: {
+    roles: {
+      owner: 'Owner',
+      admin: 'Admin',
+      member: 'Membro',
+    },
+    actions: {
+      retry: 'Tentar novamente',
+      acceptInvitation: 'Aceitar convite',
+      createOrganization: 'Criar organização',
+      returnHome: 'Voltar às organizações',
+      sendInvitation: 'Convidar pessoa',
+      revoke: 'Revogar acesso',
+    },
+    home: {
+      organizations: {
+        eyebrow: 'Ambientes',
+        title: 'Organizações acessíveis',
+        count: '{{count}} organização(ões)',
+      },
+      invitations: {
+        eyebrow: 'Aguardando você',
+        title: 'Convites pendentes',
+        expires: 'Expira em {{date}}',
+      },
+      create: {
+        eyebrow: 'Novo ambiente',
+        title: 'Criar organização',
+        description:
+          'O slug define o endereço permanente da organização e não poderá ser alterado.',
+      },
+    },
+    workspace: {
+      eyebrow: 'Organização',
+      description: 'Ambiente /{{slug}}',
+      fallbackTitle: 'Organização',
+    },
+    invite: {
+      title: 'Convidar uma pessoa',
+      description: 'Neste MVP, somente contas ArcSyn já existentes podem receber um convite.',
+    },
+    members: {
+      eyebrow: 'Acesso',
+      title: 'Membros',
+      count: '{{count}} membro(s)',
+      you: 'Você',
+      changeRoleLabel: 'Alterar papel de {{email}}',
+      revokeConfirmation: 'Revogar o acesso de {{email}}?',
+    },
+    fields: {
+      nameLabel: 'Nome da organização',
+      nameError: 'Informe um nome com até 80 caracteres.',
+      slugLabel: 'Slug',
+      slugPlaceholder: 'minha-organizacao',
+      slugDescription: 'Use de 3 a 39 caracteres: letras minúsculas, números e hífens.',
+      slugError: 'Informe um slug válido com letras minúsculas, números e hífens.',
+      emailLabel: 'E-mail da conta',
+      emailError: 'Informe um endereço de e-mail válido.',
+      roleLabel: 'Papel',
+      roleError: 'Selecione um papel permitido.',
+    },
+    states: {
+      loadingOrganizations: 'Carregando organizações…',
+      loadingInvitations: 'Carregando convites…',
+      loadingOrganization: 'Carregando organização…',
+      loadingMembers: 'Carregando membros…',
+      organizationsErrorTitle: 'Não foi possível carregar suas organizações',
+      organizationsErrorDescription: 'Verifique sua conexão e tente novamente.',
+      organizationsEmptyTitle: 'Você ainda não participa de uma organização',
+      organizationsEmptyDescription: 'Crie uma organização abaixo ou aceite um convite pendente.',
+      invitationsErrorTitle: 'Não foi possível carregar seus convites',
+      invitationsErrorDescription: 'Tente novamente sem recarregar a página.',
+      invitationsEmptyTitle: 'Nenhum convite pendente',
+      invitationsEmptyDescription: 'Novos convites aparecerão aqui.',
+      acceptErrorTitle: 'Não foi possível aceitar o convite',
+      acceptErrorDescription:
+        'O convite pode ter expirado ou sido cancelado. Atualize a lista e tente novamente.',
+      createErrorTitle: 'Não foi possível criar a organização',
+      createErrorDescription: 'Revise os dados. O slug pode já estar em uso.',
+      organizationUnavailableTitle: 'Organização indisponível',
+      organizationUnavailableDescription:
+        'Este endereço não existe ou você não possui acesso a ele.',
+      organizationErrorTitle: 'Não foi possível carregar a organização',
+      organizationErrorDescription: 'Verifique sua conexão e tente novamente.',
+      mutationErrorTitle: 'Não foi possível concluir a ação',
+      mutationErrorDescription: 'Seu acesso pode ter mudado. Atualize os dados e tente novamente.',
+      invitationConflictDescription: 'Já existe um convite pendente para esta conta.',
+      invitationSuccessTitle: 'Convite criado',
+      invitationSuccessDescription: 'A pessoa já pode aceitar o convite na página inicial.',
+      membersErrorTitle: 'Não foi possível carregar os membros',
+      membersErrorDescription: 'Verifique sua conexão e tente novamente.',
+      membersEmptyTitle: 'Nenhum membro disponível',
+      membersEmptyDescription: 'Os membros ativos aparecerão aqui.',
     },
   },
   settings: {

@@ -16,7 +16,32 @@ const IMPORT_PATTERN =
   /(?:import|export)\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|require\s*\(\s*["']([^"']+)["']\s*\)/g;
 const SHARED_ARTIFACT_EXCEPTIONS = new Set([
   'infrastructure/mcp/mcp.controller.ts',
+  'infrastructure/mcp/mcp-error-handler.ts',
   'infrastructure/mcp/mcp-tool.ts',
+]);
+const APPLICATION_INFRASTRUCTURE_IMPORTS = new Set([
+  'infrastructure/context/application-context.js',
+  'infrastructure/database/transaction-manager.js',
+  'infrastructure/database/transactional.js',
+]);
+const AUTH_CONTEXT_ADAPTER = 'modules/auth/presentation/http/guards/bff-session.guard.ts';
+const PRIVILEGED_CONTEXT_CAPABILITIES = new Map([
+  [
+    'ApplicationContextAuthenticator',
+    new Set([
+      'infrastructure/context/application-context.ts',
+      'modules/auth/auth.module.ts',
+      AUTH_CONTEXT_ADAPTER,
+    ]),
+  ],
+  [
+    'ApplicationTransactionContext',
+    new Set([
+      'infrastructure/context/application-context.ts',
+      'infrastructure/database/database.module.ts',
+      'infrastructure/database/transaction-manager.ts',
+    ]),
+  ],
 ]);
 const ARTIFACT_RULES = [
   {
@@ -35,8 +60,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Command'],
     allowedDirectories: ['application/commands'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.command\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Command deve usar <nome-em-kebab-case>.command.ts',
   },
   {
@@ -45,8 +69,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Result'],
     allowedDirectories: ['application/results'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.result\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Result deve usar <nome-em-kebab-case>.result.ts',
   },
   {
@@ -59,8 +82,7 @@ const ARTIFACT_RULES = [
       'repository/mappers',
     ],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.mapper\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Mapper deve usar <nome-em-kebab-case>.mapper.ts',
   },
   {
@@ -68,8 +90,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.controller\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Controller'],
     allowedDirectories: ['presentation/http'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.controller\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Controller deve usar <nome-em-kebab-case>.controller.ts',
   },
   {
@@ -77,8 +98,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.tool\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['McpTool'],
     allowedDirectories: ['presentation/mcp'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-mcp\.tool\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'McpTool deve usar <nome-em-kebab-case>-mcp.tool.ts',
   },
   {
@@ -86,8 +106,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.service\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Service'],
     allowedDirectories: ['application'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.service\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Service deve usar <nome-em-kebab-case>.service.ts',
   },
   {
@@ -96,8 +115,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['UseCase'],
     allowedDirectories: ['domain/use-cases'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.use-case\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'UseCase deve usar <nome-em-kebab-case>.use-case.ts',
   },
   {
@@ -106,8 +124,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['Entity'],
     allowedDirectories: ['domain/entities'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.entity\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Entity deve usar <nome-em-kebab-case>.entity.ts',
   },
   {
@@ -116,8 +133,7 @@ const ARTIFACT_RULES = [
     identifierSuffixes: ['ValueObject'],
     allowedDirectories: ['domain/value-objects'],
     forbidSubdirectories: true,
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.value-object\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'ValueObject deve usar <nome-em-kebab-case>.value-object.ts',
   },
   {
@@ -125,8 +141,7 @@ const ARTIFACT_RULES = [
     filePattern: /\.repository\.(?:ts|tsx|mts|cts)$/i,
     identifierSuffixes: ['Repository'],
     allowedDirectories: ['repository'],
-    requiredFilePattern:
-      /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
+    requiredFilePattern: /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.repository\.(?:ts|tsx|mts|cts)$/,
     requiredFileMessage: 'Repository deve usar <nome-em-kebab-case>.repository.ts',
   },
 ];
@@ -265,6 +280,31 @@ function validateArtifactsOutsideModules(relativeFile, source) {
   return errors;
 }
 
+function validatePrivilegedContextCapabilities(relativeFile, source) {
+  const errors = [];
+
+  for (const [capability, allowedFiles] of PRIVILEGED_CONTEXT_CAPABILITIES) {
+    if (!source.includes(capability) || allowedFiles.has(relativeFile)) continue;
+    errors.push(
+      `${relativeFile}: ${capability} e uma capability privilegiada restrita a composicao autorizada.`,
+    );
+  }
+
+  return errors;
+}
+
+function validatePrivilegedDatabaseAccess(relativeFile, source) {
+  if (relativeFile.startsWith('infrastructure/database/')) return [];
+
+  const privilegedIdentifiers = ['createDatabase', 'Database', 'DATABASE', 'withPrincipalContext'];
+  return privilegedIdentifiers
+    .filter((identifier) => new RegExp(`\\b${identifier}\\b`).test(source))
+    .map(
+      (identifier) =>
+        `${relativeFile}: ${identifier} e acesso privilegiado restrito a infraestrutura de banco.`,
+    );
+}
+
 function resolveImport(importer, specifier, sourceRoot) {
   if (specifier.startsWith('.')) {
     return normalize(path.relative(sourceRoot, path.resolve(path.dirname(importer), specifier)));
@@ -293,6 +333,8 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   const importedModule = resolved ? moduleFromPath(resolved) : null;
 
   if (importedModule && importedModule !== moduleName) {
+    const isPublicModuleEntry = resolved === `modules/${importedModule}/index.js`;
+    if (isPublicModuleEntry) return errors;
     errors.push(
       `${relativeFile}: nao pode importar caminho interno do modulo "${importedModule}" (${specifier}).`,
     );
@@ -301,6 +343,11 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
 
   const importedLayer =
     resolved && importedModule === moduleName ? layerFromPath(resolved, moduleName) : null;
+  const isApprovedPresentationInfrastructure =
+    resolved === 'infrastructure/mcp/mcp-tool.js' ||
+    resolved === 'infrastructure/mcp/mcp-error-handler.js' ||
+    (resolved === 'infrastructure/context/application-context.js' &&
+      relativeFile === AUTH_CONTEXT_ADAPTER);
 
   if (layer === 'domain') {
     const forbiddenPackage =
@@ -334,10 +381,10 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   if (
     layer === 'presentation' &&
     resolved?.startsWith('infrastructure/') &&
-    !resolved.startsWith('infrastructure/mcp/mcp-tool')
+    !isApprovedPresentationInfrastructure
   ) {
     errors.push(
-      `${relativeFile}: presentation so pode importar da infraestrutura o contrato MCP compartilhado (${specifier}).`,
+      `${relativeFile}: presentation so pode importar o contexto no adapter autenticador ou o contrato MCP (${specifier}).`,
     );
   }
 
@@ -351,9 +398,22 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
     );
   }
 
-  if (layer === 'application' && resolved?.startsWith('infrastructure/')) {
+  if (
+    layer === 'application' &&
+    (specifier === '@arcsyn-shift/database' || specifier.startsWith('@arcsyn-shift/database/'))
+  ) {
     errors.push(
-      `${relativeFile}: application nao pode depender da infraestrutura compartilhada (${specifier}).`,
+      `${relativeFile}: application deve acessar persistencia pelos repositories (${specifier}).`,
+    );
+  }
+
+  if (
+    layer === 'application' &&
+    resolved?.startsWith('infrastructure/') &&
+    !APPLICATION_INFRASTRUCTURE_IMPORTS.has(resolved)
+  ) {
+    errors.push(
+      `${relativeFile}: application so pode importar os contratos transacionais compartilhados (${specifier}).`,
     );
   }
 
@@ -365,6 +425,16 @@ function validateImport({ file, specifier, sourceRoot, moduleName, layer }) {
   ) {
     errors.push(
       `${relativeFile}: repository so pode depender de domain dentro do modulo (${specifier}).`,
+    );
+  }
+
+  if (
+    layer === 'repository' &&
+    resolved?.startsWith('infrastructure/') &&
+    resolved !== 'infrastructure/database/transaction-manager.js'
+  ) {
+    errors.push(
+      `${relativeFile}: repository so pode importar o TransactionManager da infraestrutura (${specifier}).`,
     );
   }
 
@@ -404,6 +474,8 @@ export async function checkArchitecture(options = {}) {
     const relativeFile = normalize(path.relative(sourceRoot, file));
     const source = await readFile(file, 'utf8');
     errors.push(...validateArtifactsOutsideModules(relativeFile, source));
+    errors.push(...validatePrivilegedContextCapabilities(relativeFile, source));
+    errors.push(...validatePrivilegedDatabaseAccess(relativeFile, source));
   }
 
   for (const entry of moduleEntries) {

@@ -43,20 +43,28 @@ describe('Nest dependency injection without design:paramtypes metadata', () => {
     });
   });
 
-  it('resolves and invokes the MCP health composition', () => {
+  it('resolves and invokes the MCP health composition', async () => {
     expect(app.get(HealthMcpTool).call()).toEqual({
       status: 'ok',
       service: 'arcsyn-shift-mcp',
     });
-    expect(
+    await expect(
       app.get(McpController).call({ method: 'tools/call', params: { name: 'health_check' } }),
-    ).toEqual({
+    ).resolves.toEqual({
       content: [
         {
           type: 'text',
           text: JSON.stringify({ status: 'ok', service: 'arcsyn-shift-mcp' }),
         },
       ],
+    });
+
+    await expect(
+      app.get(McpController).call({ method: 'tools/call', params: { name: 'unknown' } }),
+    ).resolves.toEqual({ error: { code: -32602, message: 'Invalid params' } });
+
+    await expect(app.get(McpController).call({ method: 'tools/call' })).resolves.toEqual({
+      error: { code: -32602, message: 'Invalid params' },
     });
   });
 });

@@ -50,7 +50,11 @@ test('fixa a Supabase CLI aprovada e preserva comandos operacionais seguros', ()
   assert.doesNotMatch(packageJson.scripts['supabase:stop'], /--no-backup|--all/);
   assert.equal(
     packageJson.scripts['infra:reset'],
-    'supabase db reset && pnpm db:migrate && pnpm auth:seed',
+    'supabase db reset && pnpm db:roles:local && pnpm db:migrate && pnpm auth:seed',
+  );
+  assert.equal(
+    packageJson.scripts['db:roles:local'],
+    'node supabase/scripts/apply-local-roles.mjs',
   );
   assert.equal(packageJson.scripts['auth:seed'], 'node supabase/scripts/seed-local-user.mjs');
   assert.equal(

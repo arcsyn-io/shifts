@@ -36,6 +36,7 @@ export function useOrganizationQuery(slug: string, enabled = true) {
     queryFn: ({ signal }) => fetchOrganization(slug, signal),
     enabled,
     retry: false,
+    refetchOnWindowFocus: 'always',
   });
 }
 
@@ -45,5 +46,6 @@ export function useOrganizationMembersQuery(slug: string, enabled = true) {
     queryFn: ({ signal }) => fetchOrganizationMembers(slug, signal),
     enabled,
     retry: false,
+    refetchOnWindowFocus: 'always',
   });
 }

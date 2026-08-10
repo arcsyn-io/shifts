@@ -8,6 +8,6 @@ export function useSessionQuery() {
     queryKey: sessionQueryKey,
     queryFn: ({ signal }) => fetchSession(signal),
     retry: false,
-    staleTime: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 }

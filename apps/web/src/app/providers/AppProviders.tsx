@@ -1,10 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { i18n } from '@/shared/i18n';
+import { createAppQueryClient } from '@/shared/query/query-client';
 
-const queryClient = new QueryClient();
+const queryClient = createAppQueryClient();
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (

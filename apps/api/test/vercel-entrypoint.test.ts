@@ -21,6 +21,9 @@ describe('Vercel NestJS entrypoint', () => {
     >;
 
     expect(config.framework).toBe('nestjs');
+    expect(config.installCommand).toBe(
+      "cd ../.. && corepack pnpm@9.15.5 install --frozen-lockfile --filter . --filter '@arcsyn-shift/api...' && corepack pnpm@9.15.5 exec turbo run build --filter='@arcsyn-shift/api^...'",
+    );
     expect(config).not.toHaveProperty('buildCommand');
     expect(config).not.toHaveProperty('outputDirectory');
   });

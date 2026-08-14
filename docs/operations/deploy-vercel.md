@@ -47,9 +47,11 @@ e os pacotes `workspace:*`. Mantenha habilitada a inclusão de arquivos externos
 ao Root Directory para que os pacotes compartilhados sejam construídos.
 
 A API usa a detecção zero-config do NestJS e não deve possuir Build Command ou
-Output Directory customizados. A Vercel detecta o Turborepo pelo monorepo e
-constrói primeiro os pacotes compartilhados. O projeto web mantém no `vercel.ts`
-seu build filtrado a partir da raiz e seu proxy parametrizado.
+Output Directory customizados. O `installCommand` versionado usa a versão de
+pnpm fixada pelo repositório, instala com lockfile congelado somente a raiz de
+ferramentas e a closure da API e usa o grafo do Turborepo para construir esses
+pacotes antes do builder da Vercel. O projeto web mantém no `vercel.ts` seu
+build filtrado a partir da raiz e seu proxy parametrizado.
 
 ## Ordem de configuração
 

@@ -8,13 +8,24 @@ import type {
 
 export type OrganizationRepositoryErrorKind = 'conflict' | 'unavailable';
 
+interface ErrorCauseOptions {
+  cause?: unknown;
+}
+
 export class OrganizationRepositoryError extends Error {
   constructor(
     readonly kind: OrganizationRepositoryErrorKind,
-    options?: ErrorOptions,
+    options?: ErrorCauseOptions,
   ) {
-    super(kind, options);
+    super(kind);
     this.name = 'OrganizationRepositoryError';
+    if (options && Object.prototype.hasOwnProperty.call(options, 'cause')) {
+      Object.defineProperty(this, 'cause', {
+        configurable: true,
+        value: options.cause,
+        writable: true,
+      });
+    }
   }
 }
 

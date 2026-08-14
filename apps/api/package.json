@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "lint": "eslint src test scripts",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.json --noEmit --target ES2021",
     "test": "vitest run --passWithNoTests",
     "module:create": "node scripts/create-module.mjs",
     "architecture:check": "node scripts/check-architecture.mjs"
